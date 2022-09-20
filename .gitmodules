@@ -1,0 +1,3 @@
+[submodule "carla-python-stubs"]
+	path = carla-python-stubs
+	url = git@github.com:mathiaswold/carla-python-stubs
