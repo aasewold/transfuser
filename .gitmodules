@@ -4,3 +4,6 @@
 [submodule "scenario_runner"]
 	path = scenario_runner
 	url = git@github.com:carla-simulator/scenario_runner
+[submodule "carla-python-stubs"]
+	path = carla-python-stubs
+	url = git@github.com:mathiaswold/carla-python-stubs
