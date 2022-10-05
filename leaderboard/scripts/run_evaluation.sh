@@ -3,6 +3,8 @@
 # export ROUTES=leaderboard/data/neat_weathers.xml
 # export SCENARIOS=leaderboard/data/eval_scenarios.json
 
+LEADERBOARD_ROOT=$(dirname "$0")/..
+
 python3 ${LEADERBOARD_ROOT}/leaderboard/leaderboard_evaluator.py \
 --scenarios=${SCENARIOS}  \
 --routes=${ROUTES} \
