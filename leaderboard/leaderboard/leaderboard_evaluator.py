@@ -453,10 +453,10 @@ def main():
 
     statistics_manager = StatisticsManager()
 
-    try:
-        leaderboard_evaluator = LeaderboardEvaluator(arguments, statistics_manager)
-        leaderboard_evaluator.run(arguments)
+    leaderboard_evaluator = LeaderboardEvaluator(arguments, statistics_manager)
 
+    try:
+        leaderboard_evaluator.run(arguments)
     except Exception as e:
         traceback.print_exc()
     finally:
