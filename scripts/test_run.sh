@@ -3,6 +3,7 @@
 ROOT=$(dirname "$0")/..
 
 export ROUTES=${ROOT}/scenario_runner/srunner/data/routes_devtest.xml
+export SCENARIOS=${ROOT}/scenario_runner/srunner/data/no_scenarios.json
 export REPETITIONS=1
 export DEBUG_CHALLENGE=1
 export TEAM_AGENT=${ROOT}/leaderboard/leaderboard/autoagents/human_agent.py
