@@ -9,19 +9,23 @@ RUN apt-get update && \
         libsm6 libxext6 libxrender1 \
         wget unzip
 
-RUN mkdir -p /root/transfuser
-WORKDIR /root/transfuser
-
-ENV VIRTUAL_ENV=/root/transfuser/.venv
+ENV VIRTUAL_ENV=/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-COPY setup setup
-RUN ./setup/install-deps.sh
+COPY setup /tmp/setup
+RUN /tmp/setup/install-deps.sh && \
+    rm -rf /tmp/setup
 
-ENV MODEL_PATH=/models
-RUN mkdir ${MODEL_PATH}
-VOLUME ${MODEL_PATH}
+ENV TRANSFUSER_PATH=/code/transfuser
+RUN mkdir -p ${TRANSFUSER_PATH}
+WORKDIR ${TRANSFUSER_PATH}
+
+ENV PYTHONPATH="${TRANSFUSER_PATH}/scenario_runner:${TRANSFUSER_PATH}/leaderboard:${TRANSFUSER_PATH}/carla:${PYTHONPATH}"
+
+ENV MODELS_PATH=/models
+RUN mkdir ${MODELS_PATH}
+VOLUME ${MODELS_PATH}
 
 ENV DATASET_PATH=/dataset
 RUN mkdir ${DATASET_PATH}
@@ -31,4 +35,4 @@ ENV RESULTS_PATH=/results
 RUN mkdir ${RESULTS_PATH}
 VOLUME ${RESULTS_PATH}
 
-COPY ./ ./
+COPY ./ ${TRANSFUSER_PATH}/
