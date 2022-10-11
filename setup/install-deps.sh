@@ -17,15 +17,15 @@ export TORCH_VERSION=1.12.0
 
 case $CUDA_VERSION_SHORT in
     cu113)
-        REQUIREMENTS_TORCH_OPTS="--extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION_SHORT}"
-        REQUIREMENTS_MMCV_OPTS="-f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_SHORT}/${TORCH_VERSION}/index.html"
-        REQUIREMENTS_TORCH_SCATTER_OPTS="-f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION_SHORT}.html"
+        export REQUIREMENTS_TORCH_OPTS="--extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION_SHORT}"
+        export REQUIREMENTS_MMCV_OPTS="-f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_SHORT}/torch${TORCH_VERSION}/index.html"
+        export REQUIREMENTS_TORCH_SCATTER_OPTS="-f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION_SHORT}.html"
         ;;
     cu116)
         # todo: see if MMCV cu115 binaries are compatible
-        REQUIREMENTS_TORCH_OPTS="--extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION_SHORT}"
-        REQUIREMENTS_MMCV_OPTS=""
-        REQUIREMENTS_TORCH_SCATTER_OPTS="-f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION_SHORT}.html"
+        export REQUIREMENTS_TORCH_OPTS="--extra-index-url https://download.pytorch.org/whl/${CUDA_VERSION_SHORT}"
+        export REQUIREMENTS_MMCV_OPTS=""
+        export REQUIREMENTS_TORCH_SCATTER_OPTS="-f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION_SHORT}.html"
         ;;
     *)
         echo "Unsupported CUDA version: \"$CUDA_VERSION_SHORT\""
