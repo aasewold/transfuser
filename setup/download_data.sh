@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-mkdir data
-cd data
+cd "$(dirname "$0")"/..
+
+TARGET_DIR=${DATASET_PATH:-data}
+mkdir "$TARGET_DIR"
+cd "$TARGET_DIR"
 
 # Download license file
 wget https://s3.eu-central-1.amazonaws.com/avg-projects/transfuser/data/LICENSE.txt
