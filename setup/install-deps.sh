@@ -37,14 +37,17 @@ echo "Found CUDA version: \"$CUDA_VERSION_SHORT\""
 
 export MAKEFLAGS="-j$(nproc)"
 
+echo
 echo "Upgrading pip"
 pip install --upgrade pip
 
 for stage in 1 2 3 4; do
+    echo
     echo "Installing stage $stage dependencies..."
     pip install --upgrade -r requirements-stage-$stage.txt
 done
 
+echo
 echo "Fixing opencv-python-headless"
 pip uninstall -y opencv-python
 pip install --force-reinstall opencv-python-headless
