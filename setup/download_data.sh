@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"/..
 
 TARGET_DIR=${DATASET_PATH:-data}
-mkdir "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 
 # Download license file

@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"/..
 
 TARGET_DIR=${MODEL_PATH:-model_ckpt}
-mkdir "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 
 wget https://s3.eu-central-1.amazonaws.com/avg-projects/transfuser/models_2022.zip

@@ -1,0 +1,5 @@
+${REQUIREMENTS_MMCV_OPTS}
+${REQUIREMENTS_TORCH_SCATTER_OPTS}
+mmcv-full<=1.6.0
+mmdet
+torch-scatter

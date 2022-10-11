@@ -1,1 +1,3 @@
-torch-scatter==2.0.9
+${REQUIREMENTS_TORCH_OPTS}
+timm
+torch~=${TORCH_VERSION}
