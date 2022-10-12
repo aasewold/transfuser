@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"/..
 
-TARGET_DIR=${MODEL_PATH:-model_ckpt}
+TARGET_DIR=${MODELS_PATH:-model_ckpt}
 mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 
