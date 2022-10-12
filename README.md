@@ -1,5 +1,38 @@
 # TransFuser: Imitation with Transformer-Based Sensor Fusion for Autonomous Driving
 
+## Get started
+
+1) Build the docker image
+
+```bash
+docker build . -t transfuser
+```
+
+2) Create folders for data
+
+```bash
+mkdir models results
+```
+
+3) Start the container
+  
+```bash
+docker run -it --rm --gpus all -v "$(pwd)/models:/models" -v "$(pwd)/results:/results" --network host transfuser
+```
+
+4) Download the model weights
+  
+```bash
+./scripts/download_models.sh
+```
+
+5) Run the demo. Make sure a Carla server is running on `localhost:2000`.
+
+```bash
+./scripts/test_run.sh
+```
+
+
 ## [Paper](http://www.cvlibs.net/publications/Chitta2022PAMI.pdf) | [Supplementary](http://www.cvlibs.net/publications/Chitta2022PAMI_supplementary.pdf) | [Talk](https://www.youtube.com/watch?v=-GMhYcxOiEU) | [Poster](http://www.cvlibs.net/publications/Chitta2022PAMI_poster.pdf) 
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/transfuser-imitation-with-transformer-based/autonomous-driving-on-carla-leaderboard)](https://paperswithcode.com/sota/autonomous-driving-on-carla-leaderboard?p=transfuser-imitation-with-transformer-based)
