@@ -7,7 +7,7 @@ RUN apt-get update && \
         python3.8 python3.8-dev python3-venv python-is-python3 \
         pkg-config \
         libsm6 libxext6 libxrender1 \
-        wget unzip
+        wget unzip git
 
 ENV VIRTUAL_ENV=/venv
 RUN python3 -m venv $VIRTUAL_ENV
@@ -36,3 +36,8 @@ RUN mkdir ${RESULTS_PATH}
 VOLUME ${RESULTS_PATH}
 
 COPY ./ ${TRANSFUSER_PATH}/
+
+COPY ./docker/docker-entry.sh /root/docker-entry.sh
+
+ENTRYPOINT [ "/root/docker-entry.sh" ]
+CMD [ "/bin/bash" ]
