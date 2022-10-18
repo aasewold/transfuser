@@ -498,7 +498,7 @@ class DataAgent(AutoPilot):
             ego_yaw_batched_torch = torch.tensor(ego_yaw_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
             pos_batched_torch = torch.tensor(pos_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
             yaw_batched_torch = torch.tensor(yaw_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
-            template_batched_torch = torch.tensor(template_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
+            template_batched_torch = torch.tensor(np.array(template_batched), device='cuda', dtype=torch.float32).unsqueeze(1)
             channel_batched_torch = torch.tensor(channel_batched, device='cuda', dtype=torch.float32)
 
             self.renderer.render_agent_bv_batched(
@@ -544,7 +544,7 @@ class DataAgent(AutoPilot):
             ego_yaw_batched_torch = torch.tensor(ego_yaw_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
             pos_batched_torch = torch.tensor(pos_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
             yaw_batched_torch = torch.tensor(yaw_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
-            template_batched_torch = torch.tensor(template_batched, device='cuda', dtype=torch.float32).unsqueeze(1)
+            template_batched_torch = torch.tensor(np.array(template_batched), device='cuda', dtype=torch.float32).unsqueeze(1)
             channel_batched_torch = torch.tensor(channel_batched, device='cuda', dtype=torch.int)
 
             self.renderer.render_agent_bv_batched(
