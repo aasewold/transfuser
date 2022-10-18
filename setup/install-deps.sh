@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 cd "$(dirname "$0")"
 
 if [ -z "$VIRTUAL_ENV" ]; then
