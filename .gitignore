@@ -160,6 +160,6 @@ cython_debug/
 #.idea/
 
 results/
-model_ckpt/
+models/
 data/
 maps/
