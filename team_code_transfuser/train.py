@@ -60,7 +60,7 @@ def main():
                         help='Valid values are 0, 1. 1 = using target point in the LiDAR0; 0 = dont do it')
     parser.add_argument('--use_point_pillars', type=int, default=0,
                         help='Whether to use the point_pillar lidar encoder instead of voxelization. 0:False, 1:True')
-    parser.add_argument('--parallel_training', type=int, default=0,
+    parser.add_argument('--parallel_training', type=str, default='auto',
                         help='If this is true/1 you need to launch the train.py script with CUDA_VISIBLE_DEVICES=0,1 torchrun --nnodes=1 --nproc_per_node=2 --max_restarts=0 --rdzv_id=123456780 --rdzv_backend=c10d train.py '
                              ' the code will be parallelized across GPUs. If set to false/0, you launch the script with python train.py and only 1 GPU will be used.')
     parser.add_argument('--val_every', type=int, default=5, help='At which epoch frequency to validate.')
@@ -72,7 +72,19 @@ def main():
 
     args = parser.parse_args()
     args.logdir = os.path.join(args.logdir, args.id)
-    parallel = bool(args.parallel_training)
+
+    if args.parallel_training == '0':
+        parallel = False
+    elif args.parallel_training == '1':
+        parallel = True
+    elif args.parallel_training == 'auto':
+        parallel = 'LOCAL_RANK' in os.environ
+        if parallel:
+            print('Auto detected parallel training')
+        else:
+            print('Auto detected single training')
+    else:
+        raise ValueError(f'Invalid value "{args.parallel_training}" given to --parallel_training (0/1/auto).')
 
     if(bool(args.use_disk_cache) == True):
         if (parallel == True):
