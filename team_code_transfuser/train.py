@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 import numpy as np
 import torch
@@ -200,7 +200,7 @@ def main():
                      args=args, config=config, writer=writer, device=device, rank=rank, world_size=world_size,
                      parallel=parallel, cur_epoch=args.start_epoch)
 
-    for epoch in range(trainer.cur_epoch, args.epochs):
+    for epoch in trange(trainer.cur_epoch, args.epochs, desc='Epoch', dynamic_ncols=True):
         if(parallel == True):
             # Update the seed depending on the epoch so that the distributed sampler will use different shuffles across different epochs
             sampler_train.set_epoch(epoch)
@@ -314,7 +314,7 @@ class Engine(object):
         self.cur_epoch += 1
 
         # Train loop
-        for data in tqdm(self.dataloader_train):
+        for data in tqdm(self.dataloader_train, desc='Iteration', dynamic_ncols=True, leave=False):
             self.optimizer.zero_grad(set_to_none=True)
             losses = self.load_data_compute_loss(data)
             loss = torch.tensor(0.0).to(self.device, dtype=torch.float32)
