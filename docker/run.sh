@@ -7,6 +7,8 @@ GROUP_ID=${SUDO_GID-$(id -g)}
 USER_NAME="$(id -un $USER_ID)"
 IMAGE="$USER_NAME/transfuser"
 
+TZ=${TZ:-$(cat /etc/timezone)}
+
 if [ ! -d dataset ]; then
     echo "Missing dataset directory"
     if [ "$HOSTNAME" = "nap02" ]; then
@@ -29,6 +31,7 @@ docker run \
     --network host \
     --shm-size 512gb \
     --gpus all \
+    -e TZ="$TZ" \
     -e PUID=$USER_ID \
     -e PGID=$GROUP_ID \
     -v "$(pwd)/models":/models \

@@ -16,6 +16,13 @@ if ! getent passwd $PUID > /dev/null; then
     useradd -u $PUID -g $PGID -m user
 fi
 
+if [ ! -z "$TZ" ]; then
+    echo "Setting timezone to $TZ" >&2
+    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime
+    echo "$TZ" > /etc/timezone
+    dpkg-reconfigure -f noninteractive tzdata
+fi
+
 if [ "$PUID" -gt 0 ]; then
     echo "PS1='\[\e]0;\u@carla-container: \w\a\]${debian_chroot:+($debian_chroot)}\u@carla-container:\w\$ '" >> /home/user/.bashrc
     exec runuser -u user -- "$@"
