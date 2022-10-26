@@ -71,6 +71,7 @@ def main():
 
 
     args = parser.parse_args()
+    args.id += datetime.datetime.now().strftime("-%Y-%m-%d_%H-%M-%S")
     args.logdir = os.path.join(args.logdir, args.id)
 
     if args.parallel_training == '0':
