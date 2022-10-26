@@ -7,6 +7,7 @@ networkx
 numpy
 opencv-python-headless
 Pillow
+psutil
 py-trees==0.8.3
 pygame
 requests

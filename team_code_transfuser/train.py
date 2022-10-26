@@ -1,7 +1,9 @@
 import argparse
 import json
 import os
+from typing import Callable
 from tqdm import tqdm
+import psutil
 
 import numpy as np
 import torch
@@ -73,6 +75,9 @@ def main():
     args = parser.parse_args()
     args.id += datetime.datetime.now().strftime("-%Y-%m-%d_%H-%M-%S")
     args.logdir = os.path.join(args.logdir, args.id)
+
+    if not find_parent_process(lambda proc: any(test in proc.name() for test in ['screen', 'tmux'])):
+        print("WARNING: Didn't find screen or tmux in the process tree.")
 
     if args.parallel_training == '0':
         parallel = False
@@ -402,6 +407,16 @@ def seed_worker(worker_id):
     worker_seed = (torch.initial_seed()) % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+
+
+def find_parent_process(predicate: Callable[[psutil.Process], bool]):
+    """Find the parent process of the current process that matches the given predicate."""
+    parent = psutil.Process().parent()
+    while parent is not None:
+        if predicate(parent):
+            return parent
+        parent = parent.parent()
+    return None
 
 
 if __name__ == "__main__":
