@@ -7,6 +7,22 @@ GROUP_ID=${SUDO_GID-$(id -g)}
 USER_NAME="$(id -un $USER_ID)"
 IMAGE="$USER_NAME/transfuser"
 
+if [ ! -d dataset ]; then
+    echo "Missing dataset directory"
+    if [ "$HOSTNAME" = "nap02" ]; then
+        DATASET_PATH="/data/datasets/transfuser"
+        echo "Creating symlink from $DATASET_PATH"
+        ln -s "$DATASET_PATH" dataset
+    elif [ "$HOSTNAME" = "vc2vm3" ]; then
+        DATASET_PATH="/nap02data/datasets/transfuser"
+        echo "Creating symlink from $DATASET_PATH"
+        ln -s "$DATASET_PATH" dataset
+    else
+        echo "Please create a symlink to the dataset directory"
+        exit 1
+    fi
+fi
+
 docker run \
     -it \
     --rm \
