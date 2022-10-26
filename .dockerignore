@@ -2,5 +2,6 @@ maps/
 figures/
 results/
 models/
+logs/
 
 .venv/
