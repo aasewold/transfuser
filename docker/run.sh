@@ -11,6 +11,7 @@ docker run \
     -it \
     --rm \
     --network host \
+    --shm-size 512gb \
     --gpus all \
     -e PUID=$USER_ID \
     -e PGID=$GROUP_ID \
