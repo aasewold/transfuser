@@ -1,3 +1,0 @@
-${REQUIREMENTS_TORCH_OPTS}
-timm
-torch~=${TORCH_VERSION}

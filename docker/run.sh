@@ -37,5 +37,6 @@ docker run \
     -v "$(pwd)/models":/models \
     -v "$(pwd)/results":/results \
     -v "$(pwd)/dataset":/dataset \
+    -v "/data/datasets/logs":/logs \
     -v "$(pwd)":/code/transfuser \
     "$IMAGE"
