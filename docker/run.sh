@@ -34,9 +34,9 @@ docker run \
     -e TZ="$TZ" \
     -e PUID=$USER_ID \
     -e PGID=$GROUP_ID \
-    -v "$(pwd)/models":/models \
-    -v "$(pwd)/results":/results \
-    -v "$(pwd)/dataset":/dataset \
-    -v "/data/datasets/logs":/logs \
+    -v "$(realpath models)":/models \
+    -v "$(realpath results)":/results \
+    -v "$(realpath dataset)":/dataset \
+    -v "$(realpath logs)":/logs \
     -v "$(pwd)":/code/transfuser \
     "$IMAGE"

@@ -9,17 +9,14 @@ if [ -z "$VIRTUAL_ENV" ]; then
     exit 1
 fi
 
-export TORCH_VERSION=1.12.0
-export CUDA_VERSION_SHORT=cu113
-
-export REQUIREMENTS_MMCV_OPTS="-f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_SHORT}/torch${TORCH_VERSION}/index.html"
-export REQUIREMENTS_TORCH_SCATTER_OPTS="-f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION_SHORT}.html"
-
 export MAKEFLAGS="-j$(nproc)"
 
 echo
 echo "Upgrading pip"
 pip install --upgrade pip wheel setuptools
+
+echo
+echo "Installing requirements"
 pip install -r requirements.txt
 
 echo

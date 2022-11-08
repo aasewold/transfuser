@@ -1,4 +1,3 @@
-# FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 FROM pytorch/pytorch:1.12.1-cuda11.3-cudnn8-runtime
 
 RUN apt-get update && \
@@ -12,12 +11,12 @@ RUN apt-get update && \
         wget unzip git
 
 ENV VIRTUAL_ENV=/venv
-RUN python3 -m venv $VIRTUAL_ENV
+RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY setup /tmp/setup
-# RUN --mount=type=cache,target=/root/.cache/pip \
-RUN /tmp/setup/install-deps.sh && \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    /tmp/setup/install-deps.sh && \
     rm -rf /tmp/setup
 
 ENV TRANSFUSER_PATH=/code/transfuser
