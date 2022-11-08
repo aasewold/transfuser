@@ -14,7 +14,8 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY setup /tmp/setup
-RUN /tmp/setup/install-deps.sh && \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    /tmp/setup/install-deps.sh && \
     rm -rf /tmp/setup
 
 ENV TRANSFUSER_PATH=/code/transfuser
