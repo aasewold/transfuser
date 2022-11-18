@@ -1,17 +1,20 @@
-FROM pytorch/pytorch:1.12.1-cuda11.3-cudnn8-runtime
+FROM pytorch/pytorch:1.13.0-cuda11.6-cudnn8-runtime
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
     apt-get install -y \
         tzdata \
-        python3-venv \
+        python3.8 \
+        python3.8-dev \
+        python3.8-venv \
+        python3.8-distutils \
         pkg-config \
         libsm6 libxext6 libxrender1 \
         wget unzip git
 
 ENV VIRTUAL_ENV=/venv
-RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
+RUN python3.8 -m venv --system-site-packages $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY setup /tmp/setup
@@ -37,9 +40,9 @@ ENV RESULTS_PATH=/results
 RUN mkdir ${RESULTS_PATH}
 VOLUME ${RESULTS_PATH}
 
-COPY ./ ${TRANSFUSER_PATH}/
-
 COPY ./docker/docker-entry.sh /root/docker-entry.sh
 
 ENTRYPOINT [ "/root/docker-entry.sh" ]
 CMD [ "/bin/bash" ]
+
+COPY ./ ${TRANSFUSER_PATH}/

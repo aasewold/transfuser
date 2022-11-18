@@ -3,5 +3,8 @@ figures/
 results/
 models/
 logs/
+dataset/
+
+__pycache__
 
 .venv/
