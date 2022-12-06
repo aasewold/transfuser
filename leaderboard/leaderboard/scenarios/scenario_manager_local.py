@@ -11,9 +11,11 @@ It must not be modified and is for reference only!
 """
 
 from __future__ import print_function
+from collections import Counter
 import signal
 import sys
 import time
+import datetime
 
 import py_trees
 import carla
@@ -25,6 +27,16 @@ from srunner.scenariomanager.watchdog import Watchdog
 from leaderboard.autoagents.agent_wrapper_local import AgentWrapper, AgentError
 from leaderboard.envs.sensor_interface import SensorReceivedNoData
 from leaderboard.utils.result_writer import ResultOutputProvider
+
+
+def count_tree_states(tree):
+    """
+    Count the number of states in a py_trees tree
+    """
+    states = Counter()
+    for node in tree.iterate():
+        states[node.status] += 1
+    return states
 
 
 class ScenarioManager(object):
@@ -124,6 +136,7 @@ class ScenarioManager(object):
 
         self._watchdog.start()
         self._running = True
+        self._prev_state_counts = None
 
         while self._running:
             timestamp = None
@@ -168,6 +181,11 @@ class ScenarioManager(object):
                 py_trees.display.print_ascii_tree(
                     self.scenario_tree, show_status=True)
                 sys.stdout.flush()
+
+            state_counts = count_tree_states(self.scenario_tree)
+            if state_counts != self._prev_state_counts:
+                print(datetime.datetime.now().strftime("%H:%M:%S.%f"), state_counts)
+                self._prev_state_counts = state_counts
 
             if self.scenario_tree.status != py_trees.common.Status.RUNNING:
                 self._running = False

@@ -39,4 +39,5 @@ docker run \
     -v "$(realpath dataset)":/dataset \
     -v "$(realpath logs)":/logs \
     -v "$(pwd)":/code/transfuser \
-    "$IMAGE"
+    "$IMAGE" \
+    "$@"

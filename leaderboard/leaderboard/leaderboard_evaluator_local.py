@@ -388,7 +388,7 @@ class LeaderboardEvaluator(object):
 
             crash_message = "Simulation crashed"
 
-        if crash_message == "Simulation crashed":
+        if crash_message:
             sys.exit(-1)
 
     def run(self, args):
