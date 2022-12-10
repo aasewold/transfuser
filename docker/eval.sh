@@ -1,13 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
-
-USER_ID=${SUDO_UID-$(id -u)}
-GROUP_ID=${SUDO_GID-$(id -g)}
-USER_NAME="$(id -un $USER_ID)"
-IMAGE="$USER_NAME/transfuser"
-
-TZ=${TZ:-$(cat /etc/timezone)}
+source "$(dirname "$0")/_init.sh"
 
 if [ "$1" = "--carla" ]; then
     RUN_CARLA=1
@@ -21,15 +14,14 @@ if [ "$RUN_CARLA" -eq 1 ]; then
     CARLA_CONTAINER_ID=$(
         docker run \
         --detach \
-        --rm \
         --gpus '"device=0"' \
-        --network host \
         --user $USER_ID:$GROUP_ID \
         carlasim/carla:0.9.13 \
         ./CarlaUE4.sh \
             -RenderOffScreen
     )
 
+    echo "CARLA container ID: $CARLA_CONTAINER_ID"
     echo "Waiting for server to come online"
     sleep 15
 else
@@ -39,7 +31,7 @@ fi
 docker run \
     -it \
     --rm \
-    --network host \
+    --network container:$CARLA_CONTAINER_ID \
     --shm-size 512gb \
     --gpus '"device=1"' \
     -e TZ="$TZ" \
@@ -51,12 +43,15 @@ docker run \
     -v "$(realpath logs)":/logs \
     -v "$(pwd)":/code/transfuser \
     -e CARLA_HOST=localhost \
-    "$IMAGE" \
-    scripts/eval.sh \
-        $1 \
-        $2
+    "$DOCKER_IMAGE" \
+    scripts/eval.sh "$@"
+
+status=$?
 
 if [ "$RUN_CARLA" -eq 1 ]; then
     echo "Stopping CARLA"
     docker stop "$CARLA_CONTAINER_ID"
+    docker rm "$CARLA_CONTAINER_ID"
 fi
+
+exit $status

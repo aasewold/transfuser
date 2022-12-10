@@ -307,7 +307,7 @@ class LeaderboardEvaluator(object):
 
             self._register_statistics(config, args.checkpoint, entry_status, crash_message)
             self._cleanup()
-            return
+            sys.exit(-1)
 
         print("\033[1m> Loading the world\033[0m")
 
@@ -389,7 +389,9 @@ class LeaderboardEvaluator(object):
             crash_message = "Simulation crashed"
 
         if crash_message:
-            sys.exit(-1)
+            return False
+        else:
+            return True
 
     def run(self, args):
         """
@@ -404,19 +406,31 @@ class LeaderboardEvaluator(object):
             self.statistics_manager.clear_record(args.checkpoint)
             route_indexer.save_state(args.checkpoint)
 
+        error = False
+
         while route_indexer.peek():
             # setup
             config = route_indexer.next()
 
             # run
-            self._load_and_run_scenario(args, config)
+            if not self._load_and_run_scenario(args, config):
+                error = True
+                break
 
             route_indexer.save_state(args.checkpoint)
 
+            # save global statistics
+            print("\033[1m> Registering the global statistics\033[0m")
+            global_stats_record = self.statistics_manager.compute_global_statistics(route_indexer._index)
+            StatisticsManager.save_global_record(global_stats_record, self.sensor_icons, route_indexer.total, args.checkpoint)
+
         # save global statistics
         print("\033[1m> Registering the global statistics\033[0m")
-        global_stats_record = self.statistics_manager.compute_global_statistics(route_indexer.total)
+        global_stats_record = self.statistics_manager.compute_global_statistics(route_indexer._index)
         StatisticsManager.save_global_record(global_stats_record, self.sensor_icons, route_indexer.total, args.checkpoint)
+        
+        if error:
+            sys.exit(-1)
 
 
 def main():

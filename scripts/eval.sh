@@ -3,7 +3,7 @@
 ROOT=$(dirname "$0")/..
 
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 [dev|longest6] [model_path]"
+    echo "Usage: $0 <dev|longest6> <model_path> [resume_path]"
     exit 1
 fi
 
@@ -21,8 +21,15 @@ else
 fi
 
 MODEL_PATH="$2"
-RESULTS_PATH="$MODEL_PATH/results/$(date +%Y%m%d_%H%M%S).json"
-mkdir -p "$(dirname "$RESULTS_PATH")"
+
+if [ "$#" -gt 2 ] ; then
+    RESUME="1"
+    RESULTS_PATH="$3"
+else
+    RESUME="0"
+    RESULTS_PATH="$MODEL_PATH/results/$(date +%Y%m%d_%H%M%S).json"
+    mkdir -p "$(dirname "$RESULTS_PATH")"
+fi
 
 export TEAM_AGENT=${ROOT}/team_code_transfuser/agent.py
 export TEAM_CONFIG=${MODEL_PATH}
@@ -40,4 +47,5 @@ python3 "${ROOT}/leaderboard/leaderboard/$RUNNER.py" \
     --agent=${TEAM_AGENT} \
     --agent-config=${TEAM_CONFIG} \
     --debug=${DEBUG_CHALLENGE} \
+    --resume=${RESUME} \
     --host=${CARLA_HOST:-localhost}
