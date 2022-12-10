@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 import re
 import json
 import csv
@@ -14,7 +15,7 @@ import matplotlib.lines as lines
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--xml', type=str, default='./leaderboard/data/routes/longest_weathers.xml', help='Routes file.')
+parser.add_argument('--xml', type=str, default='./leaderboard/data/longest6/longest6.xml', help='Routes file.')
 parser.add_argument('--results', type=str, default='./results/raw/', help='Folder with json files to be parsed')
 parser.add_argument('--save_dir', type=str, default='./results/parsed/', help='Directory for saving csvs')
 parser.add_argument('--town_maps', type=str, default='./leaderboard/data/town_maps_xodr', help='Directory containing town map images')
@@ -64,14 +65,14 @@ def plotPixel(coord, town_name, town_img, color):
     return town_img
 
 
-def create_legend():
+def create_legend(output_folder: str):
     symbols = [lines.Line2D([], [], color=col, marker=mark,markersize=15) 
                for _,(col,mark) in infraction_to_symbol.items()]
     names = [infraction for infraction,_ in infraction_to_symbol.items()]
 
     figlegend = plt.figure(figsize=(3,int(0.34*len(names))))
     figlegend.legend(handles=symbols, labels=names)
-    figlegend.savefig(os.path.join(args.save_dir, 'legend.png'))
+    figlegend.savefig(os.path.join(output_folder, 'legend.png'))
 
 def hex_to_list(hex_str):
     hex_to_dec = {"0":0,"1":1,"2":2,"3":3,"4":4,
@@ -97,7 +98,7 @@ def get_infraction_coords(infraction_description):
     return coords
 
 
-def main():
+def main(args):
     root = ET.parse(args.xml).getroot()
     
     # build route matching dict
@@ -116,9 +117,16 @@ def main():
                                             'weather': "Clear",
                                                 "daytime": "Noon"}
     
+    folders = [folder for folder in Path(args.results).iterdir() if folder.is_dir()]
+
+    for folder in folders:
+        process_folder(str(folder), str(Path(args.save_dir) / folder.name), route_matching, args.town_maps)
+
+
+def process_folder(results_folder: str, output_folder: str, route_matching: dict, town_maps_path: str):
     #_, _, filenames = next(walk(args.results))
     filenames = []
-    for foldername, _, cur_filenames in walk(args.results):
+    for foldername, _, cur_filenames in walk(results_folder):
         paths = []
         for filename in cur_filenames:
             if(filename.endswith(('.json'))):
@@ -193,7 +201,7 @@ def main():
         abort = True
 
     if(abort == True):
-        exit()
+        print('Skipping abortion', file=sys.stderr)
 
     total_score_values = total_score_values.sum(axis=0)/len(route_evaluation)
 
@@ -275,9 +283,9 @@ def main():
         evaluation_filtered[filter]=evaluation_per_subcategory
 
     # write output csv file
-    if not os.path.isdir(args.save_dir):
-        os.mkdir(args.save_dir)
-    f = open(os.path.join(args.save_dir, 'results.csv'),'w')      # Make file object first
+    if not os.path.isdir(output_folder):
+        os.mkdir(output_folder)
+    f = open(os.path.join(output_folder, 'results.csv'),'w')      # Make file object first
     csv_writer_object = csv.writer(f)   # Make csv writer object
     # writerow writes one row of data given as list object
     for info in total_score_info:
@@ -343,9 +351,9 @@ def main():
     # load town maps for plotting infractions
     town_maps = {}
     for town_name in towns:
-        town_maps[town_name] = np.array(Image.open(os.path.join(args.town_maps, town_name+'.png')))[:,:,:3]
+        town_maps[town_name] = np.array(Image.open(os.path.join(town_maps_path, town_name+'.png')))[:,:,:3]
 
-    create_legend()
+    create_legend(output_folder)
 
     for scenario in route_scenarios:
         for infraction in scenario["infractions"]:
@@ -364,11 +372,10 @@ def main():
 
     for town_name in towns:
         tmap = Image.fromarray(town_maps[town_name])
-        tmap.save(os.path.join(args.save_dir, town_name+'.png'))
+        tmap.save(os.path.join(output_folder, town_name+'.png'))
 
 
 if __name__ == '__main__':
     global args
-    args = parser.parse_args()
-    main()
+    main(parser.parse_args())
 
