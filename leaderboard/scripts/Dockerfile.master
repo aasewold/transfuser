@@ -88,7 +88,7 @@ RUN pip install mmcv-full==1.5.3 -f https://download.openmmlab.com/mmcv/dist/cu1
 RUN pip install mmsegmentation==0.25.0
 RUN pip install mmdet==2.25.0
 
-ENV TEAM_AGENT ${TEAM_CODE_ROOT}/submission_agent.py
+ENV TEAM_AGENT ${TEAM_CODE_ROOT}/agent.py
 ENV TEAM_CONFIG ${TEAM_CODE_ROOT}/model_ckpt/transfuser
 ENV CHALLENGE_TRACK_CODENAME SENSORS
 

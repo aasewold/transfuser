@@ -24,7 +24,7 @@ MODEL_PATH="$2"
 RESULTS_PATH="$MODEL_PATH/results/$(date +%Y%m%d_%H%M%S).json"
 mkdir -p "$(dirname "$RESULTS_PATH")"
 
-export TEAM_AGENT=${ROOT}/team_code_transfuser/submission_agent.py
+export TEAM_AGENT=${ROOT}/team_code_transfuser/agent.py
 export TEAM_CONFIG=${MODEL_PATH}
 
 export DATAGEN=0

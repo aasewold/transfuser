@@ -9,14 +9,16 @@ import psutil
 
 import numpy as np
 import torch
-import torch.distributed as dist
+import torch.distributed
+import torch.backends.cudnn
 import torch.optim as optim
+import torch.utils.data.distributed
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from config import GlobalConfig
-from model import LidarCenterNet
-from data import CARLA_Data, lidar_bev_cam_correspondences
+from src.config import GlobalConfig
+from src.transfuser import TransFuser
+from src.data import CARLA_Data, lidar_bev_cam_correspondences
 
 import pathlib
 import datetime
@@ -145,7 +147,7 @@ def main():
         config.detailed_losses_weights[index_bev] = 0.0
 
     # Create model and optimizers
-    model = LidarCenterNet(config, device, args.backbone, args.image_architecture, args.lidar_architecture, bool(args.use_velocity))
+    model = TransFuser(config, device, args.backbone, args.image_architecture, args.lidar_architecture, bool(args.use_velocity))
 
     if (parallel == True):
         # Synchronizing the Batch Norms increases the Batch size with which they are compute by *num_gpus

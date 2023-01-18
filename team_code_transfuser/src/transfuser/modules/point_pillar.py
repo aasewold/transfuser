@@ -6,6 +6,7 @@ Copied from LAV repo
 from torch_scatter import scatter_mean, scatter_max
 from torch import nn
 import torch
+import torch.nn.functional
 
 
 class DynamicPointNet(nn.Module):

@@ -12,9 +12,9 @@ import numpy as np
 import math
 
 from leaderboard.autoagents import autonomous_agent
-from model import LidarCenterNet
-from config import GlobalConfig
-from data import lidar_to_histogram_features, draw_target_point, lidar_bev_cam_correspondences
+from src.transfuser import TransFuser
+from src.config import GlobalConfig
+from src.data import lidar_to_histogram_features, draw_target_point, lidar_bev_cam_correspondences
 
 from shapely.geometry import Polygon
 
@@ -88,7 +88,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
             if file.endswith(".pth"):
                 self.model_count += 1
                 print(os.path.join(path_to_conf_file, file))
-                net = LidarCenterNet(self.config, 'cuda', self.backbone, image_architecture, lidar_architecture, use_velocity)
+                net = TransFuser(self.config, 'cuda', self.backbone, image_architecture, lidar_architecture, use_velocity)
                 if(self.config.sync_batch_norm == True):
                     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net) # Model was trained with Sync. Batch Norm. Need to convert it otherwise parameters will load incorrectly.
                 state_dict = torch.load(os.path.join(path_to_conf_file, file), map_location='cuda:0')
