@@ -19,4 +19,5 @@ python3 ${TRANSFUSER_PATH}/leaderboard/leaderboard/leaderboard_evaluator_local.p
 --agent=${TEAM_AGENT} \
 --agent-config=${TEAM_CONFIG} \
 --debug=${DEBUG_CHALLENGE} \
---resume=${RESUME}
+--resume=${RESUME} \
+--port=${CARLA_PORT:-2000}

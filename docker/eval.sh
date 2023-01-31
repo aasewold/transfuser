@@ -19,7 +19,8 @@ if [ "$RUN_CARLA" -eq 1 ]; then
         --user $USER_ID:$GROUP_ID \
         carlasim/carla:0.9.13 \
         ./CarlaUE4.sh \
-            -RenderOffScreen
+            -RenderOffScreen \
+            -carla-rpc-port 2000
     )
 
     echo "CARLA container ID: $CARLA_CONTAINER_ID"
