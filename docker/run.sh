@@ -1,13 +1,6 @@
 #!/bin/bash
 
-cd "$(dirname "$0")/.."
-
-USER_ID=${SUDO_UID-$(id -u)}
-GROUP_ID=${SUDO_GID-$(id -g)}
-USER_NAME="$(id -un $USER_ID)"
-IMAGE="$USER_NAME/transfuser"
-
-TZ=${TZ:-$(cat /etc/timezone)}
+source "$(dirname "$0")/_init.sh"
 
 if [ ! -d dataset ]; then
     echo "Missing dataset directory"
@@ -39,5 +32,5 @@ docker run \
     -v "$(realpath dataset)":/dataset \
     -v "$(realpath logs)":/logs \
     -v "$(pwd)":/code/transfuser \
-    "$IMAGE" \
+    "$DOCKER_IMAGE" \
     "$@"

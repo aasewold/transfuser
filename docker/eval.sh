@@ -14,6 +14,7 @@ if [ "$RUN_CARLA" -eq 1 ]; then
     CARLA_CONTAINER_ID=$(
         docker run \
         --detach \
+        --network host \
         --gpus '"device=0"' \
         --user $USER_ID:$GROUP_ID \
         carlasim/carla:0.9.13 \
