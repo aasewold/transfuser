@@ -24,7 +24,9 @@ if [ "$RUN_CARLA" -eq 1 ]; then
 
     echo "CARLA container ID: $CARLA_CONTAINER_ID"
     echo "Waiting for server to come online"
-    sleep 15
+    docker logs -f $CARLA_CONTAINER_ID 2>&1 | grep 'ALSA lib pcm.c:2495:(snd_pcm_open_noupdate) Unknown PCM default' -m1 >/dev/null
+    # sleep 15
+    echo "Let's hope CARLA is ready"
 else
     echo "Not starting CARLA"
 fi
