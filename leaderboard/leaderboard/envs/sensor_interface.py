@@ -223,8 +223,8 @@ class SensorInterface(object):
         self._new_data_buffers.put((tag, timestamp, data))
 
     def get_data(self):
+        data_dict = {}
         try: 
-            data_dict = {}
             while len(data_dict.keys()) < len(self._sensors_objects.keys()):
 
                 # Don't wait for the opendrive sensor
@@ -238,6 +238,7 @@ class SensorInterface(object):
                 data_dict[sensor_data[0]] = ((sensor_data[1], sensor_data[2]))
 
         except Empty:
-            raise SensorReceivedNoData("A sensor took too long to send their data")
+            missing_sensors = set(self._sensors_objects.keys()) - set(data_dict.keys())
+            raise SensorReceivedNoData(f"A sensor took too long to send their data: {missing_sensors}")
 
         return data_dict
