@@ -151,7 +151,7 @@ def main(args):
         total_junctions += len(wp_list)
         route_lengths.append(return_dict[curr_route]['length'])
         for wps in wp_list:
-            add_route = ET.SubElement(root, 'route', id='%d'%route_id, town=town_name) # 'town' in carla 0.9.10, 'map' in carla 0.9.9
+            add_route = ET.SubElement(root, 'route', id='%d'%route_id, town=town_name) # 'town' in carla 0.9.14, 'map' in carla 0.9.9
             for node in wps:
                 ET.SubElement(add_route, 'waypoint', x='%f'%node[0], y='%f'%node[1],  z='%f'%node[2], 
                                                             pitch='0.0', roll='0.0', yaw='%f'%node[3])
