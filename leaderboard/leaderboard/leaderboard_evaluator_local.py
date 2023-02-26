@@ -319,7 +319,8 @@ class LeaderboardEvaluator(object):
             self.statistics_manager.set_scenario(scenario.scenario)
 
             # Night mode
-            if config.weather.sun_altitude_angle < 0.0:
+            if config.weather.sun_altitude_angle < 0.0 or os.getenv('TRANSFUSER_DAYTIME_HEADLIGHTS', '0') == '1':
+                print("\033[1m> Enabling ego headlights\033[0m")
                 for vehicle in scenario.ego_vehicles:
                     vehicle.set_light_state(carla.VehicleLightState(self._vehicle_lights))
 
