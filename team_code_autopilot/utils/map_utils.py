@@ -188,11 +188,14 @@ class MapImage(object):
         topology = sorted(topology, key=lambda w: w.transform.location.z)
     
         for waypoint in topology:
-            waypoints = [waypoint]
-            nxt = waypoint.next(precision)[0]
+            waypoints = []
+            nxt = waypoint
             while nxt.road_id == waypoint.road_id:
                 waypoints.append(nxt)
-                nxt = nxt.next(precision)[0]
+                next_waypoints = nxt.next(precision) 
+                if not next_waypoints:
+                    break
+                nxt = next_waypoints[0]
 
             left_marking = [lateral_shift(w.transform, -w.lane_width * 0.5) for w in waypoints]
             right_marking = [lateral_shift(w.transform, w.lane_width * 0.5) for w in waypoints]
