@@ -237,7 +237,7 @@ class Engine(object):
     Engine that runs training.
     """
 
-    def __init__(self, model, optimizer, dataloader_train, dataloader_val, args, config, writer, device, rank=0, world_size=1, parallel=False, cur_epoch=0):
+    def __init__(self, model: TransFuser, optimizer: optim.Optimizer, dataloader_train: DataLoader, dataloader_val: DataLoader, args, config: GlobalConfig, writer: SummaryWriter, device, rank=0, world_size=1, parallel=False, cur_epoch=0):
         self.cur_epoch = cur_epoch
         self.bestval_epoch = cur_epoch
         self.train_loss = []
@@ -267,13 +267,13 @@ class Engine(object):
 
     def load_data_compute_loss(self, data):
         # Move data to GPU
-        rgb = data['rgb'].to(self.device, dtype=torch.float32)
+        in_rgb = data['rgb'].to(self.device, dtype=torch.float32)
         if self.config.multitask:
-            depth = data['depth'].to(self.device, dtype=torch.float32)
-            semantic = data['semantic'].squeeze(1).to(self.device, dtype=torch.long)
+            out_depth = data['depth'].to(self.device, dtype=torch.float32)
+            out_semantic = data['semantic'].squeeze(1).to(self.device, dtype=torch.long)
         else:
-            depth = None
-            semantic = None
+            out_depth = None
+            out_semantic = None
 
         bev = data['bev'].to(self.device, dtype=torch.long)
 
@@ -290,23 +290,23 @@ class Engine(object):
         target_point = data['target_point'].to(self.device, dtype=torch.float32)
         target_point_image = data['target_point_image'].to(self.device, dtype=torch.float32)
 
-        ego_vel = data['speed'].to(self.device, dtype=torch.float32)
+        current_speed = data['speed'].to(self.device, dtype=torch.float32)
 
         if ((self.args.backbone == 'transFuser') or (self.args.backbone == 'late_fusion') or (self.args.backbone == 'latentTF')):
-            losses = self.model(rgb, lidar, ego_waypoint=ego_waypoint, target_point=target_point,
+            losses = self.model(in_rgb, lidar, ego_waypoint=ego_waypoint, target_point=target_point,
                            target_point_image=target_point_image,
-                           ego_vel=ego_vel.reshape(-1, 1), bev=bev,
+                           ego_vel=current_speed.reshape(-1, 1), bev=bev,
                            label=label, save_path=self.vis_save_path,
-                           depth=depth, semantic=semantic, num_points=num_points)
+                           depth=out_depth, semantic=out_semantic, num_points=num_points)
         elif (self.args.backbone == 'geometric_fusion'):
 
             bev_points = data['bev_points'].long().to('cuda', dtype=torch.int64)
             cam_points = data['cam_points'].long().to('cuda', dtype=torch.int64)
-            losses = self.model(rgb, lidar, ego_waypoint=ego_waypoint, target_point=target_point,
+            losses = self.model(in_rgb, lidar, ego_waypoint=ego_waypoint, target_point=target_point,
                            target_point_image=target_point_image,
-                           ego_vel=ego_vel.reshape(-1, 1), bev=bev,
+                           ego_vel=current_speed.reshape(-1, 1), bev=bev,
                            label=label, save_path=self.vis_save_path,
-                           depth=depth, semantic=semantic, num_points=num_points,
+                           depth=out_depth, semantic=out_semantic, num_points=num_points,
                            bev_points=bev_points, cam_points=cam_points)
         else:
             raise ("The chosen vision backbone does not exist. The options are: transFuser, late_fusion, geometric_fusion, latentTF")
