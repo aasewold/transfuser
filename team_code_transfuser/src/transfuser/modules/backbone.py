@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from src.config import GlobalConfig
+
 from .image_encoder import ImageCNN
 from .lidar_encoder import LidarEncoder
 from .gpt import GPT
@@ -27,7 +29,7 @@ class TransfuserBackbone(nn.Module):
     use_velocity: Whether to use the velocity input in the transformer.
     """
 
-    def __init__(self, config, image_architecture='resnet34', lidar_architecture='resnet18', use_velocity=True):
+    def __init__(self, config: GlobalConfig, image_architecture='resnet34', lidar_architecture='resnet18', use_velocity=True):
         super().__init__()
         self.config = config
 

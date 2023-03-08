@@ -10,12 +10,20 @@ import random
 from copy import deepcopy
 import io
 
+from src.config import GlobalConfig
 from .utils import align, crop_image_cv2, crop_seg, decode_pil_to_npy, draw_target_point, get_depth, get_waypoints, lidar_bev_cam_correspondences, lidar_to_histogram_features, load_crop_bev_npy, parse_labels, scale_image_cv2, scale_seg, transform_waypoints
 
 
 class CARLA_Data(Dataset):
+    """
+    Iteration yields dict with keys:
+        rgb: RGB image from cameras
+        bev:  BEV image from lidar
+        depth: Depth image from simulator
+        semantic: Semantic segmentation image from simulator
+    """
 
-    def __init__(self, root, config, shared_dict=None):
+    def __init__(self, root, config: GlobalConfig, shared_dict=None):
 
         self.seq_len = np.array(config.seq_len)
         assert (config.img_seq_len == 1)
@@ -35,8 +43,8 @@ class CARLA_Data(Dataset):
         
         self.converter = np.uint8(config.converter)
 
-        self.images = []
-        self.bevs = []
+        self.rgbs = []
+        self.topdowns = []
         self.depths = []
         self.semantics = []
         self.lidars = []
@@ -56,8 +64,8 @@ class CARLA_Data(Dataset):
                 # ignore the first two and last two frame
                 for seq in range(2, num_seq - self.pred_len - self.seq_len - 2):
                     # load input seq and pred seq jointly
-                    image = []
-                    bev = []
+                    rgb = []
+                    topdown = []
                     depth = []
                     semantic = []
                     lidar = []
@@ -65,8 +73,8 @@ class CARLA_Data(Dataset):
                     measurement= []
                     # Loads the current (and past) frames (if seq_len > 1)
                     for idx in range(self.seq_len):
-                        image.append(route_dir / "rgb" / ("%04d.png" % (seq + idx)))
-                        bev.append(route_dir / "topdown" / ("encoded_%04d.png" % (seq + idx)))
+                        rgb.append(route_dir / "rgb" / ("%04d.png" % (seq + idx)))
+                        topdown.append(route_dir / "topdown" / ("encoded_%04d.png" % (seq + idx)))
                         depth.append(route_dir / "depth" / ("%04d.png" % (seq + idx)))
                         semantic.append(route_dir / "semantics" / ("%04d.png" % (seq + idx)))
                         lidar.append(route_dir / "lidar" / ("%04d.npy" % (seq + idx)))
@@ -76,8 +84,8 @@ class CARLA_Data(Dataset):
                     for idx in range(self.seq_len + self.pred_len):
                         label.append(route_dir / "label_raw" / ("%04d.json" % (seq + idx)))
 
-                    self.images.append(image)
-                    self.bevs.append(bev)
+                    self.rgbs.append(rgb)
+                    self.topdowns.append(topdown)
                     self.depths.append(depth)
                     self.semantics.append(semantic)
                     self.lidars.append(lidar)
@@ -87,8 +95,8 @@ class CARLA_Data(Dataset):
         # There is a complex "memory leak"/performance issue when using Python objects like lists in a Dataloader that is loaded with multiprocessing, num_workers > 0
         # A summary of that ongoing discussion can be found here https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662
         # A workaround is to store the string lists as numpy byte objects because they only have 1 refcount.
-        self.images       = np.array(self.images      ).astype(np.string_)
-        self.bevs         = np.array(self.bevs        ).astype(np.string_)
+        self.rgbs         = np.array(self.rgbs        ).astype(np.string_)
+        self.topdowns     = np.array(self.topdowns    ).astype(np.string_)
         self.depths       = np.array(self.depths      ).astype(np.string_)
         self.semantics    = np.array(self.semantics   ).astype(np.string_)
         self.lidars       = np.array(self.lidars      ).astype(np.string_)
@@ -107,11 +115,12 @@ class CARLA_Data(Dataset):
         data = dict()
         backbone = str(self.backbone, encoding='utf-8')
 
-        images = self.images[index]
-        bevs = self.bevs[index]
+        rgbs = self.rgbs[index]
+        lidars = self.lidars[index]
+
+        topdowns = self.topdowns[index]
         depths = self.depths[index]
         semantics = self.semantics[index]
-        lidars = self.lidars[index]
         labels = self.labels[index]
         measurements = self.measurements[index]
 
@@ -162,15 +171,15 @@ class CARLA_Data(Dataset):
                     lidars_raw_i = None
                 lidars_i[:, 1] *= -1
 
-                images_i = cv2.imread(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR)
+                images_i = cv2.imread(str(rgbs[i], encoding='utf-8'), cv2.IMREAD_COLOR)
                 if(images_i is None):
-                    print("Error loading file: ", str(images[i], encoding='utf-8'))
+                    print("Error loading file: ", str(rgbs[i], encoding='utf-8'))
                 images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
 
-                bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
+                bev_array = cv2.imread(str(topdowns[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
                 bev_array = cv2.cvtColor(bev_array, cv2.COLOR_BGR2RGB)
                 if (bev_array is None):
-                    print("Error loading file: ", str(bevs[i], encoding='utf-8'))
+                    print("Error loading file: ", str(topdowns[i], encoding='utf-8'))
                 bev_array = np.moveaxis(bev_array, -1, 0)
                 bevs_i = decode_pil_to_npy(bev_array).astype(np.uint8)
                 if self.multitask:

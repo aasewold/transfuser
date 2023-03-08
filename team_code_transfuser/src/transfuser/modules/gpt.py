@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from src.config import GlobalConfig
+
 
 class GPT(nn.Module):
     """  the full GPT language model, with a context size of block_size """
@@ -11,7 +13,7 @@ class GPT(nn.Module):
                     img_vert_anchors, img_horz_anchors, 
                     lidar_vert_anchors, lidar_horz_anchors,
                     seq_len, 
-                    embd_pdrop, attn_pdrop, resid_pdrop, config, use_velocity=True):
+                    embd_pdrop, attn_pdrop, resid_pdrop, config: GlobalConfig, use_velocity=True):
         super().__init__()
         self.n_embd = n_embd
         # We currently only support seq len 1

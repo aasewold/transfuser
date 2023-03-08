@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 from src.data.utils import get_lidar_to_bevimage_transform
+from src.config import GlobalConfig
 
 from .pid import PIDController
 from .backbone import TransfuserBackbone
@@ -31,7 +32,7 @@ class LidarCenterNet(nn.Module):
         in_channels: input channels
     """
 
-    def __init__(self, config, device, backbone, image_architecture='resnet34', lidar_architecture='resnet18', use_velocity=True):
+    def __init__(self, config: GlobalConfig, device, backbone, image_architecture='resnet34', lidar_architecture='resnet18', use_velocity=True):
         super().__init__()
         self.device = device
         self.config = config
