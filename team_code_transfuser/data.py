@@ -51,7 +51,14 @@ class CARLA_Data(Dataset):
             routes = [folder for folder in root_files if not os.path.isfile(os.path.join(sub_root,folder))]
             for route in routes:
                 route_dir = sub_root / route
-                num_seq = len(os.listdir(route_dir / "lidar"))
+
+                num_seq_set = set(
+                    len(os.listdir(route_dir / sensor_dir))
+                    for sensor_dir in os.listdir(route_dir)
+                )
+                if len(num_seq_set) > 1:
+                    print(f"Warning: Number of frames in route {route} is not consistent. min/max: {min(num_seq_set)}/{max(num_seq_set)}")
+                num_seq = min(num_seq_set)
 
                 # ignore the first two and last two frame
                 for seq in range(2, num_seq - self.pred_len - self.seq_len - 2):
