@@ -86,34 +86,35 @@ class GlobalConfig:
         [255, 255, 255],  # sidewalk
     ]
     converter = [
-        0,  # unlabeled
-        0,  # building
-        0,  # fence
-        0,  # other
-        4,  # pedestrian
-        0,  # pole
-        5,  # road line
-        2,  # road
-        6,  # sidewalk
-        0,  # vegetation
-        1,  # vehicle
-        0,  # wall
-        0,  # traffic sign
-        0,  # sky
-        0,  # ground
-        0,  # bridge
-        0,  # rail track
-        0,  # guard rail
-        0,  # traffic light
-        0,  # static
-        0,  # dynamic
-        0,  # water
-        0,  # terrain
-        3,  # red light
-        3,  # yellow light
-        0,  # green light
-        0,  # stop sign
-        5,  # stop line marking
+        0, # unlabeled
+        2, # roads
+        6, # sidewalks
+        0, # buildings
+        0, # walls
+        0, # fences
+        0, # poles
+        0, # traffic lights
+        0, # traffic signs
+        0, # vegetation
+        0, # terrain
+        0, # sky
+        4, # pedestrian
+        4, # rider
+        1, # car
+        1, # truck
+        1, # bus
+        1, # train
+        1, # motorcycle
+        1, # bicycle
+        0, # static
+        0, # dynamic
+        0, # other
+        0, # water
+        5, # road lines
+        0, # ground
+        0, # bridge
+        0, # rail track
+        0, # guard rail
     ]
 
     # Optimization
