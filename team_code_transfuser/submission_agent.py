@@ -207,12 +207,6 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                 'compass': compass,
                 }
 
-        if SAVE_PATH:
-            import pickle
-            with open(str(SAVE_PATH) + '/lidar.pkl', 'wb') as f:
-                pickle.dump(input_data['lidar'], f)
-            raise SystemExit
-
         if (self.backbone != 'latentTF'):
             lidar = input_data['lidar'][1][:, :3]
             result['lidar'] = lidar
