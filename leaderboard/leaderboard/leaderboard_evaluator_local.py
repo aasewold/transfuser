@@ -388,7 +388,9 @@ class LeaderboardEvaluator(object):
                 self.client.stop_recorder()
 
             # Remove all actors
-            scenario.remove_all_actors()
+            # DON'T remove all actors, this method is stupid and removes one by one.
+            # self._cleanup() below issues a batch removal instead.
+            # scenario.remove_all_actors()
 
             self._cleanup()
 
