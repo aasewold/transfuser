@@ -946,16 +946,16 @@ class LidarCenterNet(nn.Module):
             indices = np.argmax(pred_semantic.detach().cpu().numpy(), axis=1)
             semantic_image = converter[indices[i, ...], ...].astype('uint8')
 
-            ds_image = np.stack((depth_image, depth_image, depth_image), axis=2)
-            ds_image = (ds_image * 255).astype(np.uint8)
-            ds_image = np.concatenate((ds_image, semantic_image), axis=0)
-            ds_image = cv2.resize(ds_image, (640, 256))
-            ds_image = np.concatenate([ds_image, np.zeros_like(ds_image[:50])], axis=0)
+            depth_and_seg = np.stack((depth_image, depth_image, depth_image), axis=2)
+            depth_and_seg = (depth_and_seg * 255).astype(np.uint8)
+            depth_and_seg = np.concatenate((depth_and_seg, semantic_image), axis=0)
+            depth_and_seg = cv2.resize(depth_and_seg, (640, 256))
+            depth_and_seg = np.concatenate([depth_and_seg, np.zeros_like(depth_and_seg[:50])], axis=0)
 
-        images = np.concatenate(list(lidar_bev.detach().cpu().numpy()[i][:2]), axis=1)
-        images = (images * 255).astype(np.uint8)
-        images = np.stack([images, images, images], axis=-1)
-        images = np.concatenate([images, np.zeros_like(images[:50])], axis=0)
+        lidar_bbox = np.concatenate(list(lidar_bev.detach().cpu().numpy()[i][:2]), axis=1)
+        lidar_bbox = (lidar_bbox * 255).astype(np.uint8)
+        lidar_bbox = np.stack([lidar_bbox, lidar_bbox, lidar_bbox], axis=-1)
+        lidar_bbox = np.concatenate([lidar_bbox, np.zeros_like(lidar_bbox[:50])], axis=0)
 
         # draw bbox GT
         if (not (gt_bboxes is None)):
@@ -963,48 +963,48 @@ class LidarCenterNet(nn.Module):
             for bbox in gt_bboxes.detach().cpu().numpy()[i]:
                 bbox = self.get_rotated_bbox(bbox)
                 rotated_bboxes_gt.append(bbox)
-            images = self.draw_bboxes(rotated_bboxes_gt, images, color=(0, 255, 0), brake_color=(0, 255, 128))
+            lidar_bbox = self.draw_bboxes(rotated_bboxes_gt, lidar_bbox, color=(0, 255, 0), brake_color=(0, 255, 128))
 
         rotated_bboxes = []
         for bbox in bboxes.detach().cpu().numpy():
             bbox = self.get_rotated_bbox(bbox[:7])
             rotated_bboxes.append(bbox)
-        images = self.draw_bboxes(rotated_bboxes, images, color=(255, 0, 0), brake_color=(0, 255, 255))
+        lidar_bbox = self.draw_bboxes(rotated_bboxes, lidar_bbox, color=(255, 0, 0), brake_color=(0, 255, 255))
 
         label = torch.zeros((1, 1, 7)).to(device)
         label[:, -1, 0] = 128.
         label[:, -1, 1] = 256.
 
         if not expert_waypoints is None:
-            images = self.draw_waypoints(label[0], expert_waypoints[i:i+1], images, color=(0, 0, 255))
+            lidar_bbox = self.draw_waypoints(label[0], expert_waypoints[i:i+1], lidar_bbox, color=(0, 0, 255))
 
-        images = self.draw_waypoints(label[0], pred_wp[i:i + 1, 2:], images, color=(255, 255, 255)) # Auxliary waypoints in white
-        images = self.draw_waypoints(label[0], pred_wp[i:i + 1, :2], images, color=(255, 0, 0))     # First two, relevant waypoints in blue
+        lidar_bbox = self.draw_waypoints(label[0], pred_wp[i:i + 1, 2:], lidar_bbox, color=(255, 255, 255)) # Auxliary waypoints in white
+        lidar_bbox = self.draw_waypoints(label[0], pred_wp[i:i + 1, :2], lidar_bbox, color=(255, 0, 0))     # First two, relevant waypoints in blue
 
         # draw target points
-        images = self.draw_target_point(target_point[i].detach().cpu().numpy(), images)
+        lidar_bbox = self.draw_target_point(target_point[i].detach().cpu().numpy(), lidar_bbox)
 
         # stuck text
-        images = Image.fromarray(images)
-        draw = ImageDraw.Draw(images)
+        lidar_bbox = Image.fromarray(lidar_bbox)
+        draw = ImageDraw.Draw(lidar_bbox)
         draw.text((10, 0), "stuck detector:   %04d" % (stuck_detector), font=font)
         draw.text((10, 30), "forced move:      %s" % (" True" if forced_move else "False"), font=font,
                   fill=(255, 0, 0, 255) if forced_move else (255, 255, 255, 255))
-        images = np.array(images)
+        lidar_bbox = np.array(lidar_bbox)
 
-        bev = pred_bev[i].detach().cpu().numpy().argmax(axis=0) / 2.
-        bev = np.stack([bev, bev, bev], axis=2) * 255.
-        bev_image = bev.astype(np.uint8)
-        bev_image = cv2.resize(bev_image, (256, 256))
-        bev_image = np.concatenate([bev_image, np.zeros_like(bev_image[:50])], axis=0)
+        hd_map = pred_bev[i].detach().cpu().numpy().argmax(axis=0) / 2.
+        hd_map = np.stack([hd_map, hd_map, hd_map], axis=2) * 255.
+        hd_map = hd_map.astype(np.uint8)
+        hd_map = cv2.resize(hd_map, (256, 256))
+        hd_map = np.concatenate([hd_map, np.zeros_like(hd_map[:50])], axis=0)
 
         if not expert_waypoints is None:
-            bev_image = self.draw_waypoints(label[0], expert_waypoints[i:i+1], bev_image, color=(0, 0, 255))
+            hd_map = self.draw_waypoints(label[0], expert_waypoints[i:i+1], hd_map, color=(0, 0, 255))
 
-        bev_image = self.draw_waypoints(label[0], pred_wp[i:i + 1], bev_image, color=(255, 255, 255))
-        bev_image = self.draw_waypoints(label[0], pred_wp[i:i + 1, :2], bev_image, color=(255, 0, 0))
+        hd_map = self.draw_waypoints(label[0], pred_wp[i:i + 1], hd_map, color=(255, 255, 255))
+        hd_map = self.draw_waypoints(label[0], pred_wp[i:i + 1, :2], hd_map, color=(255, 0, 0))
 
-        bev_image = self.draw_target_point(target_point[i].detach().cpu().numpy(), bev_image)
+        hd_map = self.draw_target_point(target_point[i].detach().cpu().numpy(), hd_map)
 
         if (not (expert_waypoints is None)):
             aim = expert_waypoints[i:i + 1, :2].detach().cpu().numpy()[0].mean(axis=0)
@@ -1014,17 +1014,17 @@ class LidarCenterNet(nn.Module):
             ego_angle = np.degrees(np.arctan2(aim[1], aim[0] + self.config.lidar_pos[0]))
             angle_error = normalize_angle_degree(expert_angle - ego_angle)
 
-            bev_image = Image.fromarray(bev_image)
-            draw = ImageDraw.Draw(bev_image)
+            hd_map = Image.fromarray(hd_map)
+            draw = ImageDraw.Draw(hd_map)
             draw.text((0, 0), "Angle error:        %.2f°" % (angle_error), font=font)
 
-        bev_image = np.array(bev_image)
+        hd_map = np.array(hd_map)
 
         rgb_image = rgb[i].permute(1, 2, 0).detach().cpu().numpy()[:, :, [2, 1, 0]]
         rgb_image = cv2.resize(rgb_image, (1280 + 128, 320 + 32))
         assert (config.multitask)
-        images = np.concatenate((bev_image, images, ds_image), axis=1)
+        bottom_row = np.concatenate((hd_map, lidar_bbox, depth_and_seg), axis=1)
 
-        images = np.concatenate((rgb_image, images), axis=0)
+        final_image = np.concatenate((rgb_image, bottom_row), axis=0)
 
-        cv2.imwrite(str(save_path + ("/%d.png" % step)), images)
+        cv2.imwrite(str(save_path + ("/%d.png" % step)), final_image)
