@@ -130,10 +130,13 @@ class LeaderboardEvaluator(object):
         Remove and destroy all actors
         """
 
+        print('_cleanup() started', file=sys.stderr)
+
         # Simulation still running and in synchronous mode?
         if self.manager and self.manager.get_running_status() \
                 and hasattr(self, 'world') and self.world:
             # Reset to asynchronous mode
+            print('_cleanup() unsetting sync mode', file=sys.stderr)
             settings = self.world.get_settings()
             settings.synchronous_mode = False
             settings.fixed_delta_seconds = None
@@ -141,25 +144,32 @@ class LeaderboardEvaluator(object):
             self.traffic_manager.set_synchronous_mode(False)
 
         if self.manager:
+            print('manager.cleanup()', file=sys.stderr)
             self.manager.cleanup()
 
+        print('CarlaDataProvider.cleanup()', file=sys.stderr)
         CarlaDataProvider.cleanup()
 
         for i, _ in enumerate(self.ego_vehicles):
             if self.ego_vehicles[i]:
+                print(f'ego_vehicles[{i}].destroy()', file=sys.stderr)
                 self.ego_vehicles[i].destroy()
                 self.ego_vehicles[i] = None
         self.ego_vehicles = []
 
         if self._agent_watchdog:
+            print('_agent_watchdog.stop()', file=sys.stderr)
             self._agent_watchdog.stop()
 
         if hasattr(self, 'agent_instance') and self.agent_instance:
+            print('agent_instance.destroy()', file=sys.stderr)
             self.agent_instance.destroy()
             self.agent_instance = None
 
         if hasattr(self, 'statistics_manager') and self.statistics_manager:
             self.statistics_manager.scenario = None
+        
+        print('_cleanup() finished', file=sys.stderr)
 
     def _prepare_ego_vehicles(self, ego_vehicles, wait_for_ego_vehicles=False):
         """
