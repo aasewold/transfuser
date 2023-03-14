@@ -954,10 +954,7 @@ class LidarCenterNet(nn.Module):
             depth_and_seg = cv2.resize(depth_and_seg, (640, 256))
             depth_and_seg = np.concatenate([depth_and_seg, np.zeros_like(depth_and_seg[:50])], axis=0)
 
-        lidar_bev_np = lidar_bev.detach().cpu().numpy()
-        np.save(str(save_path) + '/lidar_bev_' + str(step) + '.npy', lidar_bev_np)
-
-        lidar_bbox = np.concatenate(list(lidar_bev_np[i][:2]), axis=1)
+        lidar_bbox = np.concatenate(list(lidar_bev.detach().cpu().numpy()[i][:2]), axis=1)
         lidar_bbox = (lidar_bbox * 255).astype(np.uint8)
         lidar_bbox = np.stack([lidar_bbox, lidar_bbox, lidar_bbox], axis=-1)
         lidar_bbox = np.concatenate([lidar_bbox, np.zeros_like(lidar_bbox[:50])], axis=0)
