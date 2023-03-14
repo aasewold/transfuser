@@ -28,6 +28,8 @@ from mmdet.models.utils.gaussian_target import (get_local_maximum, get_topk_from
 from mmdet.models.dense_heads.base_dense_head import BaseDenseHead
 from mmdet.models.dense_heads.dense_test_mixins import BBoxTestMixin
 
+from srunner.scenariomanager.timer import GameTime
+
 
 @HEADS.register_module()
 class LidarCenterNetHead(BaseDenseHead, BBoxTestMixin):
@@ -993,6 +995,8 @@ class LidarCenterNet(nn.Module):
         draw.text((10, 0), "stuck detector:   %04d" % (stuck_detector), font=font)
         draw.text((10, 30), "forced move:      %s" % (" True" if forced_move else "False"), font=font,
                   fill=(255, 0, 0, 255) if forced_move else (255, 255, 255, 255))
+        draw.text((10, 60), f'Frame: {GameTime.get_frame()}', font=font)
+        draw.text((10, 90), f'Time : {GameTime.get_time():.2f}', font=font)
         lidar_bbox = np.array(lidar_bbox)
 
         hd_map = pred_bev[i].detach().cpu().numpy().argmax(axis=0) / 2.
