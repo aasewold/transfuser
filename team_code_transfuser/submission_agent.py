@@ -249,7 +249,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
         tick_data = self.tick(input_data)
 
         # repeat actions twice to ensure LiDAR data availability
-        if self.step % self.config.action_repeat == 1:
+        if (self.step + 1) % self.config.action_repeat == 1:
             self.update_gps_buffer(self.control, tick_data['compass'], tick_data['speed'])
             return self.control
 
