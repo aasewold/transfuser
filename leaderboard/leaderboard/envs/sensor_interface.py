@@ -164,7 +164,6 @@ class CallBack(object):
         points = np.frombuffer(lidar_data.raw_data, dtype=np.dtype('f4'))
         points = copy.deepcopy(points)
         points = np.reshape(points, (int(points.shape[0] / 4), 4))
-        points[:, 1] *= -1
         self._data_provider.update_sensor(tag, points, lidar_data.frame)
 
     def _parse_radar_cb(self, radar_data, tag):
