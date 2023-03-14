@@ -154,7 +154,7 @@ class GlobalConfig:
     steer_damping = 0.5 # Damping factor by which the steering will be multiplied when braking
     route_planner_min_distance = 7.5
     route_planner_max_distance = 50.0
-    action_repeat = 1 # Number of times we repeat the networks action. It's 2 because the LiDAR operates at half the frame rate of the simulation
+    action_repeat = 2 # Number of times we repeat the networks action. It's 2 because the LiDAR operates at half the frame rate of the simulation
     stuck_threshold = 1100/action_repeat # Number of frames after which the creep controller starts triggering. Divided by
     creep_duration = 30 / action_repeat # Number of frames we will creep forward
 
