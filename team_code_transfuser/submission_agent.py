@@ -31,6 +31,31 @@ def get_entry_point():
     return 'HybridAgent'
 
 
+# This cache is used to prevent reloading the models every time the agent is instantiated.
+# After the initial load, the cache is frozen to prevent any other models from being loaded.
+_model_cache = {}
+_model_cache_frozen = False
+
+def load_cached_model(path: str):
+    if path in _model_cache:
+        return _model_cache[path]
+    elif not _model_cache_frozen:
+        state_dict = torch.load(path, map_location='cuda:0')
+        state_dict = {k[7:]: v for k, v in state_dict.items()} # Removes the .module coming from the Distributed Training. Remove this if you want to evaluate a model trained without DDP.
+        _model_cache[path] = state_dict
+        return state_dict
+    else:
+        raise ValueError('Model cache is frozen, but model was not found in cache.')
+
+def freeze_model_cache():
+    global _model_cache_frozen
+    if os.getenv('SKIP_FREEZE_MODEL_CACHE') == '1':
+        print('Skipping freeze model cache.')  
+    else:
+        print('Freezing model cache.')  
+        _model_cache_frozen = True
+
+
 class HybridAgent(autonomous_agent.AutonomousAgent):
     def setup(self, path_to_conf_file, route_index=None):
         self.track = autonomous_agent.Track.SENSORS
@@ -91,12 +116,14 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                 net = LidarCenterNet(self.config, 'cuda', self.backbone, image_architecture, lidar_architecture, use_velocity)
                 if(self.config.sync_batch_norm == True):
                     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net) # Model was trained with Sync. Batch Norm. Need to convert it otherwise parameters will load incorrectly.
-                state_dict = torch.load(os.path.join(path_to_conf_file, file), map_location='cuda:0')
-                state_dict = {k[7:]: v for k, v in state_dict.items()} # Removes the .module coming from the Distributed Training. Remove this if you want to evaluate a model trained without DDP.
+                state_dict = load_cached_model(os.path.join(path_to_conf_file, file))
                 net.load_state_dict(state_dict, strict=False)
                 net.cuda()
                 net.eval()
                 self.nets.append(net)
+        
+        # Later instantiations of the agent will only use the cached models.
+        freeze_model_cache()
 
 
         self.stuck_detector = 0
@@ -180,6 +207,10 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                            })
 
         return sensors
+    
+    def set_global_plan(self, global_plan_gps, global_plan_world_coord):
+        super().set_global_plan(global_plan_gps, global_plan_world_coord)
+        
 
     def tick(self, input_data):
         rgb = []
@@ -268,7 +299,6 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                 num_points = [torch.tensor(len(lidar_cloud)).to('cuda', dtype=torch.int32)]
             else:
                 lidar_bev = self.prepare_lidar(tick_data)
-
         
         # prepare goal location input
         target_point_image, target_point = self.prepare_goal_location(tick_data)
