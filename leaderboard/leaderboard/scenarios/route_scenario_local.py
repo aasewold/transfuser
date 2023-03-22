@@ -447,7 +447,8 @@ class RouteScenario(BasicScenario):
         Set other_actors to the superset of all scenario actors
         """
         # Create the background activity of the route
-        if int(os.environ.get('DATAGEN'))==1:
+        actor_amount = os.environ['ACTOR_AMOUNT']
+        if actor_amount == 'town':
             town_amount = {
                 'Town01': 130,
                 'Town02': 60,
@@ -463,8 +464,11 @@ class RouteScenario(BasicScenario):
 
             amount = town_amount[config.town] if config.town in town_amount else 0
             amount = random.randint(amount, 2*amount)
+
         else:
-            amount = 500 # use all spawn points
+            amount = int(actor_amount)
+            
+        print(f'Actor amount: {amount}')
 
         new_actors = CarlaDataProvider.request_new_batch_actors('vehicle.*',
                                                                 amount,
