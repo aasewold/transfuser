@@ -87,7 +87,7 @@ class LeaderboardEvaluator(object):
         dist = pkg_resources.get_distribution("carla")
         if dist.version != 'leaderboard':
             if LooseVersion(dist.version) < LooseVersion('0.9.14'):
-                raise ImportError("CARLA version 0.9.14.1 or newer required. CARLA version found: {}".format(dist))
+                print("\033[91m" + "CARLA version 0.9.14 or newer recommended. CARLA version found: {}".format(dist) + "\033[0m", file=sys.stderr)
 
         # Load agent
         module_name = os.path.basename(args.agent).split('.')[0]
