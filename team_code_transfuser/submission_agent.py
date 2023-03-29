@@ -38,8 +38,10 @@ _model_cache_frozen = False
 
 def load_cached_model(path: str):
     if path in _model_cache:
+        print(f'Using cached model {path}')
         return _model_cache[path]
     elif not _model_cache_frozen:
+        print(f'Loading model {path}')
         state_dict = torch.load(path, map_location='cuda:0')
         state_dict = {k[7:]: v for k, v in state_dict.items()} # Removes the .module coming from the Distributed Training. Remove this if you want to evaluate a model trained without DDP.
         _model_cache[path] = state_dict
@@ -51,9 +53,11 @@ def freeze_model_cache():
     global _model_cache_frozen
     if os.getenv('SKIP_FREEZE_MODEL_CACHE') == '1':
         print('Skipping freeze model cache.')  
-    else:
+    elif not _model_cache_frozen:
         print('Freezing model cache.')  
         _model_cache_frozen = True
+    else:
+        print('Model cache is already frozen.')
 
 
 class HybridAgent(autonomous_agent.AutonomousAgent):
