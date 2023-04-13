@@ -17,6 +17,7 @@ class CARLA_Data(Dataset):
 
     def __init__(self, root, config, shared_dict=None):
 
+        self.label_pad_len = config.label_pad_len
         self.seq_len = np.array(config.seq_len)
         assert (config.img_seq_len == 1)
         self.pred_len = np.array(config.pred_len)
@@ -303,7 +304,7 @@ class CARLA_Data(Dataset):
         label = np.array(label)
         
         # padding
-        label_pad = np.zeros((20, 7), dtype=np.float32)
+        label_pad = np.zeros((self.label_pad_len, 7), dtype=np.float32)
         ego_waypoint = waypoints[-1]
 
         # for the augmentation we only need to transform the waypoints for ego car
@@ -312,7 +313,14 @@ class CARLA_Data(Dataset):
         ego_waypoint = (degree_matrix @ ego_waypoint.T).T
 
         if label.shape[0] > 0:
-            label_pad[:label.shape[0], :] = label
+            if self.label_pad_len == 0:
+                label_pad = label.astype(float)
+            elif label.shape[0] > self.label_pad_len:
+                label_path = str(self.labels[index][0], encoding='utf-8')
+                print(f'WARN: label too long: {label.shape}, {label_path}')
+                label_pad[:, :] = label[:self.label_pad_len, :]
+            else:
+                label_pad[:label.shape[0], :] = label
 
         if(self.use_point_pillars == True):
             # We need to have a fixed number of LiDAR points for the batching to work, so we pad them and save to total amound of real LiDAR points.

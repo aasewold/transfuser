@@ -4,6 +4,7 @@ class GlobalConfig:
     """ base architecture configurations """
 	# Data
     seq_len = 1 # input timesteps
+    label_pad_len = 20
     # use different seq len for image and lidar
     img_seq_len = 1 
     lidar_seq_len = 1
