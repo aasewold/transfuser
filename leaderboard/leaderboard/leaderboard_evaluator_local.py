@@ -287,7 +287,12 @@ class LeaderboardEvaluator(object):
                 self.sensors = self.agent_instance.sensors()
                 track = self.agent_instance.track
 
-                AgentWrapper.validate_sensor_configuration(self.sensors, track, args.track)
+                try:
+                    AgentWrapper.validate_sensor_configuration(self.sensors, track, args.track)
+                except Exception as e:
+                    print("\n\033[91mThe sensor's configuration used is invalid:")
+                    print("> {}\033[0m\n".format(e))
+                    traceback.print_exc()
 
                 self.sensor_icons = [sensors_to_icons[sensor['type']] for sensor in self.sensors]
                 self.statistics_manager.save_sensors(self.sensor_icons, args.checkpoint)
