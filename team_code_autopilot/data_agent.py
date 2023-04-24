@@ -13,6 +13,110 @@ from utils.map_utils import MapImage, encode_npy_to_pil, PIXELS_PER_METER
 from autopilot import AutoPilot
 
 
+# First camera is treated somewhat specially (see _get_distance_from_camera)
+CAMERAS = [
+    {
+        "x": 0.522764,
+        "y": 0.130508,
+        "z": 1.600084,
+        "roll": -0.913306,
+        "pitch": 2.483113,
+        "yaw": 1.848283,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C3_tricam120",
+    },
+    {
+        "x": 0.477748,
+        "y": -0.241295,
+        "z": 1.781576,
+        "roll": 1.624299,
+        "pitch": 2.829775,
+        "yaw": -2.152302,
+        "width": 1920,
+        "height": 1208,
+        "fov": 60,
+        "id": "C1_front60Single",
+    },
+    {
+        "x": 0.469463,
+        "y": 0.096403,
+        "z": 1.627890,
+        "roll": -1.649049,
+        "pitch": 2.605477,
+        "yaw": 6.683704,
+        "width": 1920,
+        "height": 1208,
+        "fov": 60,
+        "id": "C2_tricam60",
+    },
+    {
+        "x": -1.807476,
+        "y": -0.017932,
+        "z": 1.775562,
+        "roll": 1.358793,
+        "pitch": 4.126693,
+        "yaw": -178.943680,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C4_rearCam",
+    },
+    {
+        "x": 0.676480,
+        "y": 0.895918,
+        "z": 1.437428,
+        "roll": 0.706273,
+        "pitch": 0.741232,
+        "yaw": 62.413895,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C8_R2",
+    },
+    {
+        "x": 0.595348,
+        "y": 0.951235,
+        "z": 1.424497,
+        "roll": 2.778383,
+        "pitch": -1.005296,
+        "yaw": 131.372772,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C5_R1",
+    },
+    {
+        "x": 0.645139,
+        "y": -0.976260,
+        "z": 1.436506,
+        "roll": -0.975950,
+        "pitch": -2.254568,
+        "yaw": -118.803108,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C6_L1",
+    },
+    {
+        "x": 0.734501,
+        "y": -0.951668,
+        "z": 1.439002,
+        "roll": -0.149951,
+        "pitch": 0.485583,
+        "yaw": -48.862160,
+        "width": 1920,
+        "height": 1208,
+        "fov": 120,
+        "id": "C7_L2",
+    },
+]
+
+CAMERA_NAMES = [ c['id'] for c in CAMERAS ] 
+
+
+
 def get_entry_point():
     return 'DataAgent'
 
@@ -53,10 +157,11 @@ class DataAgent(AutoPilot):
         if self.save_path is not None:
             (self.save_path / 'topdown').mkdir()
             (self.save_path / 'lidar').mkdir()
-            (self.save_path / 'rgb').mkdir()
             (self.save_path / 'label_raw').mkdir()
-            (self.save_path / 'semantics').mkdir()
-            (self.save_path / 'depth').mkdir()
+            for name in CAMERA_NAMES:
+                (self.save_path / ('rgb_' + name)).mkdir()
+                (self.save_path / ('semantics_' + name)).mkdir()
+                (self.save_path / ('depth_' + name)).mkdir()
 
         self._active_traffic_light = None
 
@@ -89,27 +194,6 @@ class DataAgent(AutoPilot):
         if self.save_path is not None:
             result += [
                     {
-                        'type': 'sensor.camera.rgb',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'rgb_front'
-                    },
-                    {
-                        'type': 'sensor.camera.rgb',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': -60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'rgb_left'
-                    },
-                    {
-                        'type': 'sensor.camera.rgb',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'rgb_right'
-                    },
-                    {
                         'type': 'sensor.lidar.ray_cast',
                         'x': -0.638467, 'y': -0.020235, 'z': 2.065906,
                         'roll': 0.0, 'pitch': 0.0, 'yaw': -90.0,
@@ -117,49 +201,25 @@ class DataAgent(AutoPilot):
                         'points_per_second': 1200000,
                         'id': 'lidar'
                     },
-                    {
-                        'type': 'sensor.camera.semantic_segmentation',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'semantics_front'
-                    },
-                    {
-                        'type': 'sensor.camera.semantic_segmentation',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': -60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'semantics_left'
-                    },
-                    {
-                        'type': 'sensor.camera.semantic_segmentation',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'semantics_right'
-                    },
-                    {
-                        'type': 'sensor.camera.depth',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'depth_front'
-                    },
-                    {
-                        'type': 'sensor.camera.depth',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': -60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'depth_left'
-                    },
-                    {
-                        'type': 'sensor.camera.depth',
-                        'x': 1.3, 'y': 0.0, 'z':2.3,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 60.0,
-                        'width': self.cam_config['width'], 'height': self.cam_config['height'], 'fov': self.cam_config['fov'],
-                        'id': 'depth_right'
-                    },
                     ]
+            for cam in CAMERAS:
+                result += [
+                    {
+                        **cam,
+                        'type': 'sensor.camera.rgb',
+                        'id': 'rgb_' + cam['id'],
+                    },
+                    {
+                        **cam,
+                        'type': 'sensor.camera.semantic_segmentation',
+                        'id': 'semantics_' + cam['id'],
+                    },
+                    {
+                        **cam,
+                        'type': 'sensor.camera.depth',
+                        'id': 'depth_' + cam['id'],
+                    },
+                ]
 
         return result
 
@@ -167,10 +227,10 @@ class DataAgent(AutoPilot):
         result = super().tick(input_data)
 
         if self.save_path is not None:
-            rgb = []
-            semantics = []
-            depth = []
-            for pos in ['left', 'front', 'right']:
+            rgb = {}
+            semantics = {}
+            depth = {}
+            for pos in CAMERA_NAMES:
                 rgb_cam = 'rgb_' + pos
                 semantics_cam = 'semantics_' + pos
                 depth_cam = 'depth_' + pos
@@ -180,23 +240,19 @@ class DataAgent(AutoPilot):
                 _depth = self._get_depth(depth_img)
                 self._change_seg_tl(_semantics, _depth, self._active_traffic_light)
 
-                rgb.append(cv2.cvtColor(input_data[rgb_cam][1][:, :, :3], cv2.COLOR_BGR2RGB))
-                semantics.append(_semantics)
-                depth.append(depth_img)
-
-            rgb = np.concatenate(rgb, axis=1)
-            semantics = np.concatenate(semantics, axis=1)
-            depth =  np.concatenate(depth, axis=1)
+                rgb['rgb_' + pos] = cv2.cvtColor(input_data[rgb_cam][1][:, :, :3], cv2.COLOR_BGR2RGB)
+                semantics['semantics_' + pos] = _semantics
+                depth['depth_' + pos] = _depth
 
             result['topdown'] = self.render_BEV()
             lidar = input_data['lidar']
             cars = self.get_bev_cars(lidar=lidar)
 
             result.update({'lidar': lidar,
-                            'rgb': rgb,
+                            **rgb,
                             'cars': cars,
-                            'semantics': semantics,
-                            'depth': depth})
+                            **semantics,
+                            **depth})
 
         return result
 
@@ -244,18 +300,19 @@ class DataAgent(AutoPilot):
         frame = self.step // self.save_freq
 
         # CV2 uses BGR internally so we need to swap the image channels before saving.
-        img = cv2.cvtColor(tick_data['rgb'],cv2.COLOR_RGB2BGR)
-        cv2.imwrite(str(self.save_path / 'rgb' / ('%04d.png' % frame)), img)
+        for cam in CAMERA_NAMES:
+            img = cv2.cvtColor(tick_data['rgb_' + cam],cv2.COLOR_RGB2BGR)
+            cv2.imwrite(str(self.save_path / ('rgb_' + cam)  / ('%04d.png' % frame)), img)
+
+            semantics = tick_data['semantics_' + cam]
+            cv2.imwrite(str(self.save_path / ('semantics_' + cam) / ('%04d.png' % frame)), semantics)
+
+            depth = cv2.cvtColor(tick_data['depth_' + cam], cv2.COLOR_RGB2BGR)
+            cv2.imwrite(str(self.save_path / ('depth_' + cam) / ('%04d.png' % frame)), depth)
 
         img = encode_npy_to_pil(np.asarray(tick_data['topdown'].squeeze().cpu()))
         img_save=np.moveaxis(img,0,2)
         cv2.imwrite(str(self.save_path / 'topdown' / ('encoded_%04d.png' % frame)), img_save)
-
-        semantics = tick_data['semantics']
-        cv2.imwrite(str(self.save_path / 'semantics' / ('%04d.png' % frame)), semantics)
-
-        depth = cv2.cvtColor(tick_data['depth'], cv2.COLOR_RGB2BGR)
-        cv2.imwrite(str(self.save_path / 'depth' / ('%04d.png' % frame)), depth)
 
         np.save(self.save_path / 'lidar' / ('%04d.npy' % frame), tick_data['lidar'], allow_pickle=True)
         self.save_labels(self.save_path / 'label_raw' / ('%04d.json' % frame), tick_data['cars'])
@@ -587,7 +644,7 @@ class DataAgent(AutoPilot):
         Returns:
             [type]: [description]
         """        
-        sensor_transform = self._sensors['rgb_front'].get_transform()
+        sensor_transform = self._sensors[CAMERA_NAMES[0]].get_transform()
 
         distance = np.sqrt(
                 (sensor_transform.location.x - target.x) ** 2 +
