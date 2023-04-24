@@ -15,7 +15,7 @@ class GlobalConfig:
     lidar_resolution_width  = 256 # Width of the LiDAR grid that the point cloud is voxelized into.
     lidar_resolution_height = 256 # Height of the LiDAR grid that the point cloud is voxelized into.
     pixels_per_meter = 8.0 # How many pixels make up 1 meter. 1 / pixels_per_meter = size of pixel in meters
-    lidar_pos = [1.3,0.0,2.5] # x, y, z mounting position of the LiDAR
+    lidar_pos = [-0.638467, -0.020235, 2.065906] # x, y, z mounting position of the LiDAR
     lidar_rot = [0.0, 0.0, -90.0] # Roll Pitch Yaw of LiDAR in degree
 
     camera_pos = [1.3, 0.0, 2.3] #x, y, z mounting position of the camera
