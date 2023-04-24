@@ -644,7 +644,7 @@ class DataAgent(AutoPilot):
         Returns:
             [type]: [description]
         """        
-        sensor_transform = self._sensors[CAMERA_NAMES[0]].get_transform()
+        sensor_transform = self._sensors['rgb_' + CAMERA_NAMES[0]].get_transform()
 
         distance = np.sqrt(
                 (sensor_transform.location.x - target.x) ** 2 +
