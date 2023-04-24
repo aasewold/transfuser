@@ -242,7 +242,7 @@ class DataAgent(AutoPilot):
 
                 rgb['rgb_' + pos] = cv2.cvtColor(input_data[rgb_cam][1][:, :, :3], cv2.COLOR_BGR2RGB)
                 semantics['semantics_' + pos] = _semantics
-                depth['depth_' + pos] = _depth
+                depth['depth_' + pos] = depth_img
 
             result['topdown'] = self.render_BEV()
             lidar = input_data['lidar']
