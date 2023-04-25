@@ -12,7 +12,7 @@ import carla
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 from agents.navigation.local_planner import RoadOption
 
-ALL_TOWNS = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06', 'Town07', 'Town10HD']
+ALL_TOWNS = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06_Opt', 'Town07_Opt', 'Town10HD']
 TRIGGER_THRESHOLD = 2.0  # Threshold to say if a trigger position is new or repeated, works for matching positions
 TRIGGER_ANGLE_THRESHOLD = 10  # Threshold to say if two angles can be considering matching when matching transforms
 MAX_LEN = 120 # Max route length in meters

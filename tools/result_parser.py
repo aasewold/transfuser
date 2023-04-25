@@ -20,13 +20,13 @@ parser.add_argument('--save_dir', type=str, default='./results/parsed/', help='D
 parser.add_argument('--town_maps', type=str, default='./leaderboard/data/town_maps_xodr', help='Directory containing town map images')
 
 
-towns = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06']
+towns = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06_Opt']
 
 reference_coord = {'Town01': (-8.22, -8.187), 'Town02': (-13.102, 0.148), 'Town03': (-291.567, 320.126),
-                   'Town04': (-518.496, 398.342), 'Town05': (-317.72, 217.554), 'Town06': (-390.685, -160.232)}
+                   'Town04': (-518.496, 398.342), 'Town05': (-317.72, 217.554), 'Town06_Opt': (-390.685, -160.232)}
 
 scale = {'Town01': (757/410, 636/345), 'Town02': (434/214, 637/314), 'Town03': (651/605, 637/590), 
-         'Town04': (708/940, 627/844 ), 'Town05': (784/540, 632/436), 'Town06': (920/1050, 522/570)}
+         'Town04': (708/940, 627/844 ), 'Town05': (784/540, 632/436), 'Town06_Opt': (920/1050, 522/570)}
 
 infraction_to_symbol = {"collisions_layout":("#ff0000","."), 
                            "collisions_pedestrian":("#00ff00","."),
@@ -46,7 +46,7 @@ def getPixel(coord, town_name):
         
     if town_name == 'Town03' or town_name == 'Town04':
         pix_y = int(-(-y-reference_coord[town_name][1])*scale[town_name][1])
-    if town_name == 'Town01' or town_name == 'Town02' or town_name == 'Town06':
+    if town_name == 'Town01' or town_name == 'Town02' or town_name == 'Town06_Opt':
         pix_x = abs(pix_x)
         pix_y = abs(pix_y)
     
