@@ -212,6 +212,8 @@ class LeaderboardEvaluator(object):
         Load a new CARLA world and provide data to CarlaDataProvider
         """
 
+        print('Loading town', town)
+
         self.world = self.client.load_world(town)
         settings = self.world.get_settings()
         settings.fixed_delta_seconds = 1.0 / self.frame_rate
