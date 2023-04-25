@@ -463,7 +463,7 @@ class RouteScenario(BasicScenario):
             }
 
             amount = town_amount[config.town] if config.town in town_amount else 0
-            amount = random.randint(amount, 2*amount)
+            amount = random.randint(amount, 2*amount+1)
 
         else:
             amount = int(actor_amount)
