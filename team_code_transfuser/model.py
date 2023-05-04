@@ -1031,7 +1031,7 @@ class LidarCenterNet(nn.Module):
 
         final_image = np.concatenate((rgb_image, bottom_row), axis=0)
 
-        cv2.imwrite(str(save_path + ("/%d.png" % step)), final_image)
+        cv2.imwrite(str(save_path + ("/%d.jpg" % step)), final_image)
     
     def visualize_model_io(self, save_path, step, config, rgb, lidar_bev, target_point,
                         pred_wp, pred_bev, pred_semantic, pred_depth, bboxes, device,
@@ -1127,4 +1127,4 @@ class LidarCenterNet(nn.Module):
         right = np.concatenate((hd_map, lidar_bbox), axis=0)
         final_image = np.concatenate((left, right), axis=1)
 
-        cv2.imwrite(str(save_path + ("/%d.png" % step)), final_image)
+        cv2.imwrite(str(save_path + ("/%d.jpg" % step)), final_image)

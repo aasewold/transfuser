@@ -302,7 +302,7 @@ class DataAgent(AutoPilot):
         # CV2 uses BGR internally so we need to swap the image channels before saving.
         for cam in CAMERA_NAMES:
             img = cv2.cvtColor(tick_data['rgb_' + cam],cv2.COLOR_RGB2BGR)
-            cv2.imwrite(str(self.save_path / ('rgb_' + cam)  / ('%04d.png' % frame)), img)
+            cv2.imwrite(str(self.save_path / ('rgb_' + cam)  / ('%04d.jpg' % frame)), img)
 
             semantics = tick_data['semantics_' + cam]
             cv2.imwrite(str(self.save_path / ('semantics_' + cam) / ('%04d.png' % frame)), semantics)

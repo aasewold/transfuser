@@ -73,7 +73,7 @@ class CARLA_Data(Dataset):
                     measurement= []
                     # Loads the current (and past) frames (if seq_len > 1)
                     for idx in range(self.seq_len):
-                        image.append(route_dir / "rgb" / ("%04d.png" % (seq + idx)))
+                        image.append(route_dir / "rgb" / ("%04d.jpg" % (seq + idx)))
                         bev.append(route_dir / "topdown" / ("encoded_%04d.png" % (seq + idx)))
                         depth.append(route_dir / "depth" / ("%04d.png" % (seq + idx)))
                         semantic.append(route_dir / "semantics" / ("%04d.png" % (seq + idx)))
@@ -197,7 +197,7 @@ class CARLA_Data(Dataset):
 
                 if not self.data_cache is None:
                     # We want to cache the images in png format instead of uncompressed, to reduce memory usage
-                    result, compressed_imgage = cv2.imencode('.png', images_i)
+                    result, compressed_imgage = cv2.imencode('.jpg', images_i)
                     result, compressed_depths = cv2.imencode('.png', depths_i)
                     result, compressed_semantics = cv2.imencode('.png', semantics_i)
                     compressed_bevs = io.BytesIO()  # bev has 2 channels which does not work with png compression so we use generic numpy in memory compression
