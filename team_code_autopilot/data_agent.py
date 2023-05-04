@@ -245,7 +245,7 @@ class DataAgent(AutoPilot):
 
         # CV2 uses BGR internally so we need to swap the image channels before saving.
         img = cv2.cvtColor(tick_data['rgb'],cv2.COLOR_RGB2BGR)
-        cv2.imwrite(str(self.save_path / 'rgb' / ('%04d.png' % frame)), img)
+        cv2.imwrite(str(self.save_path / 'rgb' / ('%04d.jpg' % frame)), img)
 
         img = encode_npy_to_pil(np.asarray(tick_data['topdown'].squeeze().cpu()))
         img_save=np.moveaxis(img,0,2)
