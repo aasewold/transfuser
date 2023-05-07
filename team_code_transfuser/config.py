@@ -94,7 +94,7 @@ class GlobalConfig:
         0, # walls
         0, # fences
         0, # poles
-        0, # traffic lights
+        3, # traffic lights
         0, # traffic signs
         0, # vegetation
         0, # terrain
