@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 import ujson
 from skimage.transform import rotate
 import numpy as np
@@ -7,6 +8,7 @@ from tqdm import tqdm
 import sys
 from pathlib import Path
 import cv2
+from PIL import Image
 import random
 from copy import deepcopy
 import io
@@ -33,6 +35,9 @@ class CARLA_Data(Dataset):
         self.max_lidar_points = np.array(config.max_lidar_points)
         self.backbone = np.array(config.backbone).astype(np.string_)
         self.inv_augment_prob = np.array(config.inv_augment_prob)
+
+        if self.augment and self.data_cache is not None:
+            raise ValueError("Augmentation and data cache are not compatible. Please disable one of them.")
         
         self.converter = np.uint8(config.converter)
 
@@ -112,6 +117,8 @@ class CARLA_Data(Dataset):
         """Returns the item at index idx. """
         cv2.setNumThreads(0) # Disable threading because the data loader will already split in threads.
 
+        do_augment = bool(self.augment and random.random() > self.inv_augment_prob)
+
         data = dict()
         backbone = str(self.backbone, encoding='utf-8')
 
@@ -170,9 +177,7 @@ class CARLA_Data(Dataset):
                     lidars_raw_i = None
                 lidars_i[:, 1] *= -1
 
-                images_i = cv2.imread(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR)
-                if(images_i is None):
-                    print("Error loading file: ", str(images[i], encoding='utf-8'))
+                images_i = kia_load_image(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR, do_augment)
                 images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
 
                 bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
@@ -182,14 +187,10 @@ class CARLA_Data(Dataset):
                 bev_array = np.moveaxis(bev_array, -1, 0)
                 bevs_i = decode_pil_to_npy(bev_array).astype(np.uint8)
                 if self.multitask:
-                    depths_i = cv2.imread(str(depths[i], encoding='utf-8'), cv2.IMREAD_COLOR)
-                    if (depths_i is None):
-                        print("Error loading file: ", str(depths[i], encoding='utf-8'))
+                    depths_i = kia_load_image(str(depths[i], encoding='utf-8'), cv2.IMREAD_COLOR, do_augment)
                     depths_i = scale_image_cv2(cv2.cvtColor(depths_i, cv2.COLOR_BGR2RGB), self.scale)
 
-                    semantics_i = cv2.imread(str(semantics[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
-                    if (semantics_i is None):
-                        print("Error loading file: ", str(semantics[i], encoding='utf-8'))
+                    semantics_i = kia_load_image(str(semantics[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED, do_augment)
                     semantics_i = scale_seg(semantics_i, self.scale)
                 else:
                     depths_i = None
@@ -221,7 +222,6 @@ class CARLA_Data(Dataset):
         crop_shift = 0
         degree = 0
         rad = np.deg2rad(degree)
-        do_augment = self.augment and random.random() > self.inv_augment_prob
         if do_augment:
             degree = (random.random() * 2. - 1.) * self.aug_max_rotation
             rad = np.deg2rad(degree)
@@ -369,6 +369,52 @@ class CARLA_Data(Dataset):
         
         data['target_point_image'] = draw_target_point(local_command_point)
         return data
+
+
+def kia_load_image(path_s: str, cv2_mode, augment: bool):
+    path = Path(path_s)
+    p_C7_L2 = path.parent.with_name(path.parent.name + '_C7_L2') / path.name
+    p_C8_R2 = path.parent.with_name(path.parent.name + '_C8_R2') / path.name
+    p_C3_tricam120 = path.parent.with_name(path.parent.name + '_C3_tricam120') / path.name
+
+    i_C7_L2 = cv2.imread(str(p_C7_L2), cv2_mode)
+    i_C8_R2 = cv2.imread(str(p_C8_R2), cv2_mode)
+    i_C3_tricam120 = cv2.imread(str(p_C3_tricam120), cv2_mode)
+
+    def a(x, y, s):
+        if augment:
+            xs = 50
+            ys = 30
+            ss = 1.1 
+            return (x + random.randint(-xs, xs),
+                    y + random.randint(-ys, ys),
+                    s * random.uniform(1 / ss, ss))
+        else:
+            return (x, y, s)
+
+    i_C7_L2 = kia_crop_image(i_C7_L2, a(-200, -30, 1.33))
+    i_C8_R2 = kia_crop_image(i_C8_R2, a( 120, -30, 1.33))
+    i_C3_tricam120 = kia_crop_image(i_C3_tricam120, a(0, 0, 1.21))
+
+    return np.concatenate([i_C7_L2, i_C3_tricam120, i_C8_R2], axis=1)
+
+
+def kia_crop_image(image, transform: Tuple[float, float, float]):
+    # Our processing
+    pil = Image.fromarray(image)
+    ox, oy, s = transform
+    x = pil.width//2 + ox
+    y = pil.height//2 + oy
+    w = int(pil.width * s)
+    h = int(pil.height * s)
+    box = (x - w//2, y - h//2, x + w//2, y + h//2)
+    pil = pil.crop(box)
+    pil = pil.resize((960, 480), Image.BILINEAR)
+    # Transfuser processing
+    img = np.asarray(pil)
+    img = img[160:320, 320:640]
+    return img
+
 
 def get_depth(data):
     """
