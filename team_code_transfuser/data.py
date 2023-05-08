@@ -12,6 +12,7 @@ from copy import deepcopy
 import io
 
 from utils import get_vehicle_to_virtual_lidar_transform, get_vehicle_to_lidar_transform, get_lidar_to_vehicle_transform, get_lidar_to_bevimage_transform
+from config import GlobalConfig
 
 class CARLA_Data(Dataset):
 
@@ -609,10 +610,14 @@ def load_crop_bev_npy(bev_array, degree):
     start_x = 250 - PIXLES // 2
     start_y = 250 - PIXLES
 
-    # shift the center by 7 because the lidar is + 1.3 in x 
+    # shift the center by 7 because the lidar is +1.3 in x 
+    shift = round(GlobalConfig.lidar_pos[0] * PIXELS_PER_METER_FOR_BEV)
     bev_array = np.moveaxis(bev_array, 0, -1).astype(np.float32)
     bev_shift = np.zeros_like(bev_array)
-    bev_shift[7:] = bev_array[:-7]
+    if shift > 0:
+        bev_shift[shift:] = bev_array[:-shift]
+    elif shift < 0:
+        bev_shift[:shift] = bev_array[-shift:]
 
     bev_shift = rotate(bev_shift, degree)
     cropped_image = bev_shift[start_y:start_y+PIXLES, start_x:start_x+PIXLES]
@@ -634,7 +639,7 @@ def draw_target_point(target_point, color = (255, 255, 255)):
     target_point = target_point.copy()
 
     # convert to lidar coordinate
-    target_point[1] += 1.3
+    target_point[1] += GlobalConfig.lidar_pos[0]
     point = target_point * 8.
     point[1] *= -1
     point[1] = 256 - point[1] 

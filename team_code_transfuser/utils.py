@@ -1,11 +1,12 @@
 import numpy as np
+from config import GlobalConfig
 
 def get_virtual_lidar_to_vehicle_transform():
     # This is a fake lidar coordinate
     T = np.eye(4)
-    T[0, 3] = 1.3
-    T[1, 3] = 0.0
-    T[2, 3] = 2.5
+    T[0, 3] = GlobalConfig.lidar_pos[0]
+    T[1, 3] = GlobalConfig.lidar_pos[1]
+    T[2, 3] = GlobalConfig.lidar_pos[2]
     return T
         
 def get_vehicle_to_virtual_lidar_transform():
@@ -18,9 +19,9 @@ def get_lidar_to_vehicle_transform():
     T = np.eye(4)
     T[:3, :3] = rot
 
-    T[0, 3] = 1.3
-    T[1, 3] = 0.0
-    T[2, 3] = 2.5
+    T[0, 3] = GlobalConfig.lidar_pos[0]
+    T[1, 3] = GlobalConfig.lidar_pos[1]
+    T[2, 3] = GlobalConfig.lidar_pos[2]
     return T
 
 def get_vehicle_to_lidar_transform():
