@@ -521,8 +521,9 @@ def lidar_to_histogram_features(lidar):
         overhead_splat = hist/hist_max_per_pixel
         return overhead_splat
 
-    below = lidar[lidar[...,2]<=-2.3]
-    above = lidar[lidar[...,2]>-2.3]
+    lidar_z = 2.06 - 0.2
+    below = lidar[lidar[...,2] <= -lidar_z]
+    above = lidar[lidar[...,2]  > -lidar_z]
     below_features = splat_points(below)
     above_features = splat_points(above)
     features = np.stack([above_features, below_features], axis=-1)
