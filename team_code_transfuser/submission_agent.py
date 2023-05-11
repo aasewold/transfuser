@@ -20,12 +20,17 @@ from shapely.geometry import Polygon
 
 import itertools
 import pathlib
-SAVE_PATH = os.environ.get('SAVE_PATH')
 
-if not SAVE_PATH:
-    SAVE_PATH = None
-else:
-    pathlib.Path(SAVE_PATH).mkdir(parents=True, exist_ok=True)
+
+def get_save_path():
+    SAVE_PATH = os.environ.get('SAVE_PATH')
+
+    if not SAVE_PATH:
+        SAVE_PATH = None
+    else:
+        pathlib.Path(SAVE_PATH).mkdir(parents=True, exist_ok=True)
+
+    return SAVE_PATH
 
 def get_entry_point():
     return 'HybridAgent'
@@ -193,7 +198,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                         'id': 'speed'
                         }
                     ]
-        if(SAVE_PATH != None): #Debug camera for visualizations
+        if(get_save_path() != None): #Debug camera for visualizations
             sensors.append({
                             'type': 'sensor.camera.rgb',
                             'x': -4.5, 'y': 0.0, 'z':2.3,
@@ -225,7 +230,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
             rgb.append(rgb_pos)
         rgb = np.concatenate(rgb, axis=1)
 
-        if(SAVE_PATH != None): #Debug camera for visualizations
+        if(get_save_path() != None): #Debug camera for visualizations
             # don't need buffer for it always use the latest one
             self.rgb_back = input_data["rgb_back"][1][:, :, :3]
 
@@ -329,7 +334,7 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
                 rotated_bb = []
                 if (self.backbone == 'transFuser'):
                     pred_wp, _ = self.nets[i].forward_ego(image, lidar_bev, target_point, target_point_image, velocity,
-                                                          num_points=num_points, save_path=SAVE_PATH, stuck_detector=self.stuck_detector,
+                                                          num_points=num_points, save_path=get_save_path(), stuck_detector=self.stuck_detector,
                                                           forced_move=is_stuck, rgb_back=self.rgb_back)
                 elif (self.backbone == 'late_fusion'):
                     pred_wp, _ = self.nets[i].forward_ego(image, lidar_bev, target_point, target_point_image, velocity, num_points=num_points)
