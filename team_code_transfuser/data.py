@@ -522,7 +522,7 @@ def lidar_to_histogram_features(lidar):
         overhead_splat = hist/hist_max_per_pixel
         return overhead_splat
 
-    lidar_z = 2.06 - 0.2
+    lidar_z = GlobalConfig.lidar_pos[2] - 0.2
     below = lidar[lidar[...,2] <= -lidar_z]
     above = lidar[lidar[...,2]  > -lidar_z]
     below_features = splat_points(below)
