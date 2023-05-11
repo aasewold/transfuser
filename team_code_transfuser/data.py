@@ -178,11 +178,8 @@ class CARLA_Data(Dataset):
                     lidars_raw_i = None
                 lidars_i[:, 1] *= -1
 
-                a_x = do_augment * random.randint(-50, 50)
-                a_y = do_augment * random.randint(-30, 30)
-                a_s = do_augment * random.uniform(1 / 1.1, 1.1)
-
-                images_i = kia_load_image(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR, a_x, a_y, a_s)
+                augment_seed = random.getrandbits(64)
+                images_i = kia_load_image(str(images[i], encoding='utf-8'), cv2.IMREAD_COLOR, do_augment, augment_seed)
                 images_i = scale_image_cv2(cv2.cvtColor(images_i, cv2.COLOR_BGR2RGB), self.scale)
 
                 bev_array = cv2.imread(str(bevs[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED)
@@ -192,10 +189,10 @@ class CARLA_Data(Dataset):
                 bev_array = np.moveaxis(bev_array, -1, 0)
                 bevs_i = decode_pil_to_npy(bev_array).astype(np.uint8)
 
-                depths_i = kia_load_image(str(depths[i], encoding='utf-8'), cv2.IMREAD_COLOR, a_x, a_y, a_s)
+                depths_i = kia_load_image(str(depths[i], encoding='utf-8'), cv2.IMREAD_COLOR, do_augment, augment_seed)
                 depths_i = scale_image_cv2(cv2.cvtColor(depths_i, cv2.COLOR_BGR2RGB), self.scale)
 
-                semantics_i = kia_load_image(str(semantics[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED, a_x, a_y, a_s)
+                semantics_i = kia_load_image(str(semantics[i], encoding='utf-8'), cv2.IMREAD_UNCHANGED, do_augment, augment_seed)
                 semantics_i = scale_seg(semantics_i, self.scale)
 
                 if not self.data_cache is None:
@@ -373,7 +370,7 @@ class CARLA_Data(Dataset):
         return data
 
 
-def kia_load_image(path_s: str, cv2_mode, ax: int, ay: int, as_: float):
+def kia_load_image(path_s: str, cv2_mode, augment: bool, seed: int):
     path = Path(path_s)
     p_C7_L2 = path.parent.with_name(path.parent.name + '_C7_L2') / path.name
     p_C8_R2 = path.parent.with_name(path.parent.name + '_C8_R2') / path.name
@@ -383,9 +380,22 @@ def kia_load_image(path_s: str, cv2_mode, ax: int, ay: int, as_: float):
     i_C8_R2 = cv2.imread(str(p_C8_R2), cv2_mode)
     i_C3_tricam120 = cv2.imread(str(p_C3_tricam120), cv2_mode)
 
-    i_C7_L2 = kia_crop_image(i_C7_L2, (-200 + ax, -30 + ay, 1.33 * as_))
-    i_C8_R2 = kia_crop_image(i_C8_R2, ( 120 + ax, -30 + ay, 1.33 * as_))
-    i_C3_tricam120 = kia_crop_image(i_C3_tricam120, (0 + ax, 0 + ay, 1.21 * as_))
+    rng = random.Random(seed)
+
+    def a(x, y, s):
+        if augment:
+            xs = 50
+            ys = 30
+            ss = 1.1 
+            return (x + rng.randint(-xs, xs),
+                    y + rng.randint(-ys, ys),
+                    s * rng.uniform(1 / ss, ss))
+        else:
+            return (x, y, s)
+
+    i_C7_L2 = kia_crop_image(i_C7_L2, a(-200, -30, 1.33))
+    i_C8_R2 = kia_crop_image(i_C8_R2, a( 120, -30, 1.33))
+    i_C3_tricam120 = kia_crop_image(i_C3_tricam120, a(0, 0, 1.21))
 
     return np.concatenate([i_C7_L2, i_C3_tricam120, i_C8_R2], axis=1)
 
