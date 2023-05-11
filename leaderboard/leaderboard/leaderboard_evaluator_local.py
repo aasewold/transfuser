@@ -274,6 +274,11 @@ class LeaderboardEvaluator(object):
         if int(os.environ['DATAGEN'])==1:
             CarlaDataProvider._rng = random.RandomState(config.index)
 
+        env_save_path = os.environ.get('SAVE_PATH')
+        if env_save_path:
+            os.environ['SAVE_PATH'] = env_save_path + '/' + config.name + '_' + str(config.repetition_index)
+            print('SAVE_PATH set to', os.environ['SAVE_PATH'])
+
         # Set up the user's agent, and the timer to avoid freezing the simulation
         try:
             self._agent_watchdog.start()
@@ -362,11 +367,6 @@ class LeaderboardEvaluator(object):
 
             self._cleanup()
             sys.exit(-1)
-
-        env_save_path = os.getenv('SAVE_PATH')
-        if env_save_path:
-            os.putenv('SAVE_PATH', env_save_path + '/' + config.name + '_' + str(config.repetition_index))
-            print('SAVE_PATH set to', os.getenv('SAVE_PATH'))
 
         print("\033[1m> Running the route\033[0m")
 
