@@ -358,6 +358,11 @@ class LeaderboardEvaluator(object):
             self._cleanup()
             sys.exit(-1)
 
+        env_save_path = os.getenv('SAVE_PATH')
+        if env_save_path:
+            os.putenv('SAVE_PATH', env_save_path + '/' + config.name + '_' + str(config.repetition_index))
+            print('SAVE_PATH set to', os.getenv('SAVE_PATH'))
+
         print("\033[1m> Running the route\033[0m")
 
         # Run the scenario
