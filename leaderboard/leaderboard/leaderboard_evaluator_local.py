@@ -50,6 +50,9 @@ sensors_to_icons = {
 }
 
 
+SAVE_PATH = os.environ.get('SAVE_PATH')
+
+
 class LeaderboardEvaluator(object):
 
     """
@@ -273,6 +276,10 @@ class LeaderboardEvaluator(object):
         self.statistics_manager.set_route(config.name, config.index)
         if int(os.environ['DATAGEN'])==1:
             CarlaDataProvider._rng = random.RandomState(config.index)
+
+        if SAVE_PATH:
+            os.environ['SAVE_PATH'] = SAVE_PATH + '/' + config.name + '_' + str(config.repetition_index)
+            print('SAVE_PATH set to', os.environ['SAVE_PATH'])
 
         # Set up the user's agent, and the timer to avoid freezing the simulation
         try:

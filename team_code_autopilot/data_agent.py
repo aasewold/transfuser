@@ -11,6 +11,7 @@ import json
 from utils import lts_rendering
 from utils.map_utils import MapImage, encode_npy_to_pil, PIXELS_PER_METER
 from autopilot import AutoPilot
+from team_code_transfuser.config import GlobalConfig
 
 
 def get_entry_point():
@@ -391,7 +392,7 @@ class DataAgent(AutoPilot):
 
         # transform relative pos to virtual lidar system
         rot = np.eye(3)
-        trans = - np.array([1.3, 0.0, 2.5])
+        trans = - np.array(GlobalConfig.lidar_pos)
         relative_pos = rot @ relative_pos + trans
 
         return relative_pos
@@ -403,39 +404,14 @@ class DataAgent(AutoPilot):
                         [0, 0, 1]], dtype=np.float32)
         T = np.eye(4)
 
-        T[0, 3] = 1.3
-        T[1, 3] = 0.0
-        T[2, 3] = 2.5
+        T[0, 3] = GlobalConfig.lidar_pos[0]
+        T[1, 3] = GlobalConfig.lidar_pos[1]
+        T[2, 3] = GlobalConfig.lidar_pos[2]
         T[:3, :3] = rot
         return T
 
     def get_vehicle_to_lidar_transform(self):
         return np.linalg.inv(self.get_lidar_to_vehicle_transform())
-
-    def get_image_to_vehicle_transform(self):
-        # yaw = 0.0 as rot is Identity
-        T = np.eye(4)
-        T[0, 3] = 1.3
-        T[1, 3] = 0.0
-        T[2, 3] = 2.3
-
-        # rot is from vehicle to image
-        rot = np.array([[0, -1, 0],
-                        [0, 0, -1],
-                        [1, 0, 0]], dtype=np.float32)
-        
-        # so we need a transpose here
-        T[:3, :3] = rot.T
-        return T
-
-    def get_vehicle_to_image_transform(self):
-        return np.linalg.inv(self.get_image_to_vehicle_transform())
-
-    def get_lidar_to_image_transform(self):
-        Tr_lidar_to_vehicle = self.get_lidar_to_vehicle_transform()
-        Tr_image_to_vehicle = self.get_image_to_vehicle_transform()
-        T_lidar_to_image = np.linalg.inv(Tr_image_to_vehicle) @ Tr_lidar_to_vehicle
-        return T_lidar_to_image
 
     def render_BEV(self):
         semantic_grid = self.global_map
