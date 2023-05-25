@@ -1,3 +1,13 @@
+Branch overview:
+- `experiments/0.9.10`: Experiments done with CARLA version 0.9.10
+- `experiments/0.9.14`: Experiments done with CARLA version 0.9.14
+- `experiments/kia`: Experiments done with CARLA version 0.9.14 and custom Kia e-Niro sensor setup
+- `common`: Changes that apply to all of the above branches
+
+Original README:
+
+---
+
 # TransFuser: Imitation with Transformer-Based Sensor Fusion for Autonomous Driving
 
 ## [Paper](http://www.cvlibs.net/publications/Chitta2022PAMI.pdf) | [Supplementary](http://www.cvlibs.net/publications/Chitta2022PAMI_supplementary.pdf) | [Talk](https://www.youtube.com/watch?v=-GMhYcxOiEU) | [Poster](http://www.cvlibs.net/publications/Chitta2022PAMI_poster.pdf) 
