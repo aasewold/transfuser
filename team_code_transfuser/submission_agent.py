@@ -13,8 +13,8 @@ import math
 
 from leaderboard.autoagents import autonomous_agent
 from model import LidarCenterNet
-from config import GlobalConfig
-from data import lidar_to_histogram_features, draw_target_point, lidar_bev_cam_correspondences
+from config import GlobalConfig, ALL_CAMERAS
+from data import lidar_to_histogram_features, draw_target_point, lidar_bev_cam_correspondences, kia_crop_image
 
 from shapely.geometry import Polygon
 
@@ -66,6 +66,21 @@ def freeze_model_cache():
 
 
 class HybridAgent(autonomous_agent.AutonomousAgent):
+    def __init__(self, *args, **kw):
+        self.CAM_TRANSFORMS = {
+            'C3_tricam120': (0, 0, 1.21),
+            'C7_L2': (-200, -30, 1.33),
+            'C8_R2': ( 120, -30, 1.33),
+        }
+        self.EVAL_CAMERAS = {
+            'left': 'C7_L2',
+            'front':'C3_tricam120',
+            'right': 'C8_R2'
+        }
+        self.CAM_POSITIONS = {v: k for k, v in self.EVAL_CAMERAS.items()}
+        self.CAMERAS = [cam for cam in ALL_CAMERAS if cam['id'] in self.EVAL_CAMERAS.values()]
+        super().__init__(*args, **kw)
+
     def setup(self, path_to_conf_file, route_index=None):
         self.track = autonomous_agent.Track.SENSORS
         self.config_path = path_to_conf_file
@@ -157,63 +172,42 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
 
     def sensors(self):
         sensors = [
-                    {
-                        'type': 'sensor.camera.rgb',
-                        'x': self.config.camera_pos[0], 'y': self.config.camera_pos[1], 'z':self.config.camera_pos[2],
-                        'roll': self.config.camera_rot_0[0], 'pitch': self.config.camera_rot_0[1], 'yaw': self.config.camera_rot_0[2],
-                        'width': self.config.camera_width, 'height': self.config.camera_height, 'fov': self.config.camera_fov,
-                        'id': 'rgb_front'
-                        },
-                    {
-                        'type': 'sensor.camera.rgb',
-                        'x': self.config.camera_pos[0], 'y': self.config.camera_pos[1], 'z':self.config.camera_pos[2],
-                        'roll': self.config.camera_rot_1[0], 'pitch': self.config.camera_rot_1[1], 'yaw': self.config.camera_rot_1[2],
-                        'width': self.config.camera_width, 'height': self.config.camera_height, 'fov': self.config.camera_fov,
-                        'id': 'rgb_left'
-                        },
-                    {
-                        'type': 'sensor.camera.rgb',
-                        'x': self.config.camera_pos[0], 'y': self.config.camera_pos[1], 'z':self.config.camera_pos[2],
-                        'roll': self.config.camera_rot_2[0], 'pitch': self.config.camera_rot_2[1], 'yaw': self.config.camera_rot_2[2],
-                        'width': self.config.camera_width, 'height': self.config.camera_height, 'fov': self.config.camera_fov,
-                        'id': 'rgb_right'
-                        },
-                    {
-                        'type': 'sensor.other.imu',
-                        'x': 0.0, 'y': 0.0, 'z': 0.0,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-                        'sensor_tick': self.config.carla_frame_rate,
-                        'id': 'imu'
-                        },
-                    {
-                        'type': 'sensor.other.gnss',
-                        'x': 0.0, 'y': 0.0, 'z': 0.0,
-                        'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-                        'sensor_tick': 0.01,
-                        'id': 'gps'
-                        },
-                    {
-                        'type': 'sensor.speedometer',
-                        'reading_frequency': self.config.carla_fps,
-                        'id': 'speed'
-                        }
-                    ]
-        if(get_save_path() != None): #Debug camera for visualizations
+            {
+                'type': 'sensor.other.imu',
+                'x': 0.0, 'y': 0.0, 'z': 0.0,
+                'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
+                'sensor_tick': self.config.carla_frame_rate,
+                'id': 'imu'
+            },
+            {
+                'type': 'sensor.other.gnss',
+                'x': 0.0, 'y': 0.0, 'z': 0.0,
+                'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
+                'sensor_tick': 0.01,
+                'id': 'gps'
+            },
+            {
+                'type': 'sensor.speedometer',
+                'reading_frequency': self.config.carla_fps,
+                'id': 'speed'
+            }
+        ]
+        
+        for cam in self.CAMERAS:
             sensors.append({
-                            'type': 'sensor.camera.rgb',
-                            'x': -4.5, 'y': 0.0, 'z':2.3,
-                            'roll': 0.0, 'pitch': -15.0, 'yaw': 0.0,
-                            'width': 960, 'height': 480, 'fov': 100,
-                            'id': 'rgb_back'
-                            })
+                **cam,
+                'type': 'sensor.camera.rgb',
+                'id': 'rgb_' + self.CAM_POSITIONS[cam['id']],
+            })
 
-        if (self.backbone != 'latentTF'):  # LiDAR method
-            sensors.append({
-                            'type': 'sensor.lidar.ray_cast',
-                            'x': self.lidar_pos[0], 'y': self.lidar_pos[1], 'z': self.lidar_pos[2],
-                            'roll': self.config.lidar_rot[0], 'pitch': self.config.lidar_rot[1], 'yaw': self.config.lidar_rot[2],
-                            'id': 'lidar'
-                           })
+        sensors.append({
+            'type': 'sensor.lidar.ray_cast',
+            'x': -0.638467, 'y': -0.020235, 'z': 2.065906,
+            'roll': 0.0, 'pitch': 0.0, 'yaw': -90.0,
+            'rotation_frequency': 20,
+            'points_per_second': 1200000,
+            'id': 'lidar'
+        })
 
         return sensors
     
@@ -223,16 +217,13 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
 
     def tick(self, input_data):
         rgb = []
-        for pos in ['left', 'front', 'right']:
+        for pos, cam_name in self.EVAL_CAMERAS.items():
             rgb_cam = 'rgb_' + pos
+            transform = self.CAM_TRANSFORMS[cam_name]
             rgb_pos = cv2.cvtColor(input_data[rgb_cam][1][:, :, :3], cv2.COLOR_BGR2RGB)
-            rgb_pos = self.scale_crop(Image.fromarray(rgb_pos), self.config.scale, self.config.img_width, self.config.img_width, self.config.img_resolution[0], self.config.img_resolution[0])
+            rgb_pos = kia_crop_image(rgb_pos, transform)
             rgb.append(rgb_pos)
         rgb = np.concatenate(rgb, axis=1)
-
-        if(get_save_path() != None): #Debug camera for visualizations
-            # don't need buffer for it always use the latest one
-            self.rgb_back = input_data["rgb_back"][1][:, :, :3]
 
         gps = input_data['gps'][1][:2]
         speed = input_data['speed'][1]['speed']
@@ -608,19 +599,6 @@ class HybridAgent(autonomous_agent.AutonomousAgent):
         target_point = torch.cat(target_point_degrees, dim=0).to('cuda', dtype=torch.float32)
 
         return target_point_image, target_point
-
-    def scale_crop(self, image, scale=1, start_x=0, crop_x=None, start_y=0, crop_y=None):
-        (width, height) = (image.width // scale, image.height // scale)
-        if scale != 1:
-            image = image.resize((width, height))
-        if crop_x is None:
-            crop_x = width
-        if crop_y is None:
-            crop_y = height
-            
-        image = np.asarray(image)
-        cropped_image = image[start_y:start_y+crop_y, start_x:start_x+crop_x]
-        return cropped_image
 
     def shift_x_scale_crop(self, image, scale, crop, crop_shift=0):
         crop_h, crop_w = crop
