@@ -464,8 +464,9 @@ class RouteScenario(BasicScenario):
                 'Town10HD': 80,
             }
 
-            amount = town_amount[config.town] if config.town in town_amount else 0
-            amount = random.randint(amount, 2*amount+1)
+            amount = town_amount[config.town]
+            if os.environ.get('DATAGEN') == '1':
+                amount = random.randint(amount, 2*amount+1)
 
         else:
             amount = int(actor_amount)
